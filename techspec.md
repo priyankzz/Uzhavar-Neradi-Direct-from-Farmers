@@ -13,6 +13,7 @@
 * **Authentication:** Email + Password + Email OTP
 * **Payment:** Razorpay + Cash on Delivery (COD)
 * **Hosting:** TBD
+* **Logo Upload:** Only Admin can upload or update the platform logo (visible on frontend)
 
 ---
 
@@ -87,6 +88,7 @@
 ## Admin
 
 * Verify and manage **Farmers, Customers, and Delivery Partners**
+* Upload / update platform **logo**
 * Monitor middleman violations
 * Handle disputes & complaints
 * View analytics & AI system
