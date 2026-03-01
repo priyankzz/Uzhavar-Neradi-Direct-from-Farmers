@@ -1,0 +1,25 @@
+# Virtual Environment
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment variables
+.env
+
+# Database
+db.sqlite3
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Media files (optional if large)
+media/
+
+# Static build files
+staticfiles/
