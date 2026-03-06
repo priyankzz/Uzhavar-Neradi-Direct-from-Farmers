@@ -6,6 +6,8 @@ Copy to: backend/users/models.py
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 import random
 
 class User(AbstractUser):
@@ -23,7 +25,7 @@ class User(AbstractUser):
     email_otp = models.CharField(max_length=6, blank=True, null=True)
     otp_created_at = models.DateTimeField(blank=True, null=True)
     profile_pic = models.ImageField(upload_to='profiles/', blank=True, null=True)
-    preferred_language = models.CharField(max_length=10, default='ta')  # ta or en
+    preferred_language = models.CharField(max_length=10, default='ta')
     
     def generate_otp(self):
         """Generate 6 digit OTP"""
@@ -46,6 +48,18 @@ class User(AbstractUser):
     
     def __str__(self):
         return f"{self.username} - {self.role}"
+
+# Signal to sync superuser with custom fields
+@receiver(post_save, sender=User)
+def sync_superuser(sender, instance, created, **kwargs):
+    """Automatically set superuser as ADMIN and verified"""
+    if instance.is_superuser:
+        # Only update if needed to avoid recursion
+        if instance.role != 'ADMIN' or not instance.is_verified:
+            User.objects.filter(pk=instance.pk).update(
+                role='ADMIN', 
+                is_verified=True
+            )
 
 class FarmerProfile(models.Model):
     """Farmer Profile Model"""
@@ -115,7 +129,7 @@ class DeliveryPartnerProfile(models.Model):
     license_number = models.CharField(max_length=50)
     license_doc = models.FileField(upload_to='documents/licenses/')
     
-    # Service area (simplified - you can store as polygon in production)
+    # Service area
     service_area = models.TextField(help_text="Areas you serve")
     
     # Availability

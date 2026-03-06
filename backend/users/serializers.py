@@ -12,8 +12,8 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'role', 'phone', 'is_verified', 
-                  'preferred_language', 'profile_pic', 'date_joined']
-        read_only_fields = ['id', 'is_verified', 'date_joined']
+                  'is_superuser', 'is_staff', 'preferred_language', 'profile_pic', 'date_joined']
+        read_only_fields = ['id', 'is_verified', 'date_joined', 'is_superuser', 'is_staff']
 
 class RegisterSerializer(serializers.ModelSerializer):
     """Registration Serializer"""
@@ -29,6 +29,12 @@ class RegisterSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Passwords don't match")
         return data
     
+    def validate_role(self, value):
+        # Prevent regular users from registering as ADMIN
+        if value == 'ADMIN':
+            raise serializers.ValidationError("Cannot register as Admin")
+        return value
+    
     def create(self, validated_data):
         validated_data.pop('password2')
         user = User.objects.create_user(
@@ -40,12 +46,11 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
         # Generate and send OTP
         otp = user.generate_otp()
-        # In production, send email here
         print(f"OTP for {user.email}: {otp}")
         return user
 
 class LoginSerializer(serializers.Serializer):
-    """Login Serializer"""
+    """Login Serializer - Requires OTP for all users"""
     email = serializers.EmailField()
     password = serializers.CharField()
     
@@ -54,18 +59,23 @@ class LoginSerializer(serializers.Serializer):
         password = data.get('password')
         
         if email and password:
-            user = authenticate(username=email, password=password)
-            if user:
-                if not user.is_verified:
-                    raise serializers.ValidationError("Email not verified")
-                data['user'] = user
-            else:
+            try:
+                user = User.objects.get(email=email)
+                if user.check_password(password):
+                    # Check if user is verified (requires OTP)
+                    if not user.is_verified:
+                        raise serializers.ValidationError("Email not verified. Please verify OTP first.")
+                    
+                    data['user'] = user
+                else:
+                    raise serializers.ValidationError("Invalid credentials")
+            except User.DoesNotExist:
                 raise serializers.ValidationError("Invalid credentials")
         else:
             raise serializers.ValidationError("Must include email and password")
         
         return data
-
+    
 class OTPVerifySerializer(serializers.Serializer):
     """OTP Verification Serializer"""
     email = serializers.EmailField()
