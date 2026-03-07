@@ -42,6 +42,12 @@ import AssignedDeliveries from './components/delivery/AssignedDeliveries';
 import AdminDashboard from './components/admin/Dashboard';
 import UserVerification from './components/admin/UserVerification';
 import LogoManagement from './components/admin/LogoManagement';
+import CategoryManagement from './components/admin/CategoryManagement';
+import FestivalManagement from './components/admin/FestivalManagement';
+import Announcements from './components/admin/Announcements';
+import AuditLogs from './components/admin/AuditLogs';
+import DisputeManagement from './components/admin/DisputeManagement';
+import MiddlemanMonitor from './components/admin/MiddlemanMonitor';
 
 function App() {
   const { loading } = useAuth();
@@ -54,7 +60,7 @@ function App() {
   return (
     <div className={`min-h-screen flex flex-col ${language === 'ta' ? 'font-tamil' : ''}`}>
       <Header />
-      
+
       <main className="flex-grow container mx-auto px-4 py-8">
         <Routes>
           {/* Public Routes */}
@@ -64,7 +70,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/verify-otp" element={<OTPVerification />} />
-          
+
           {/* Customer Routes */}
           <Route path="/customer" element={
             <ProtectedRoute role="CUSTOMER">
@@ -91,7 +97,7 @@ function App() {
               <TrackOrder />
             </ProtectedRoute>
           } />
-          
+
           {/* Farmer Routes */}
           <Route path="/farmer" element={
             <ProtectedRoute role="FARMER">
@@ -113,7 +119,7 @@ function App() {
               <DemandInsights />
             </ProtectedRoute>
           } />
-          
+
           {/* Delivery Routes */}
           <Route path="/delivery" element={
             <ProtectedRoute role="DELIVERY">
@@ -125,7 +131,7 @@ function App() {
               <AssignedDeliveries />
             </ProtectedRoute>
           } />
-          
+
           {/* Admin Routes */}
           <Route path="/admin" element={
             <ProtectedRoute role="ADMIN">
@@ -142,12 +148,42 @@ function App() {
               <LogoManagement />
             </ProtectedRoute>
           } />
-          
+          <Route path="/admin/categories" element={
+            <ProtectedRoute role="ADMIN">
+              <CategoryManagement />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/festivals" element={
+            <ProtectedRoute role="ADMIN">
+              <FestivalManagement />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/announcements" element={
+            <ProtectedRoute role="ADMIN">
+              <Announcements />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/audit-logs" element={
+            <ProtectedRoute role="ADMIN">
+              <AuditLogs />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/disputes" element={
+            <ProtectedRoute role="ADMIN">
+              <DisputeManagement />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/middleman" element={
+            <ProtectedRoute role="ADMIN">
+              <MiddlemanMonitor />
+            </ProtectedRoute>
+          } />
+
           {/* 404 */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
-      
+
       <Footer />
     </div>
   );
