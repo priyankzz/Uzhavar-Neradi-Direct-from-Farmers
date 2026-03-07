@@ -1,5 +1,5 @@
 /**
- * Assigned Deliveries Component
+ * Assigned Deliveries Component - Complete Bilingual
  * Copy to: frontend/src/components/delivery/AssignedDeliveries.tsx
  */
 
@@ -47,7 +47,47 @@ const AssignedDeliveries: React.FC = () => {
   const [currentLocation, setCurrentLocation] = useState<Location | null>(null);
   const [updating, setUpdating] = useState(false);
   
-  const { t } = useLanguage();
+  const { language } = useLanguage();
+  const isTamil = language === 'ta';
+
+  // Tamil translations
+  const t = {
+    pageTitle: isTamil ? 'ஒதுக்கப்பட்ட விநியோகங்கள்' : 'Assigned Deliveries',
+    allDeliveries: isTamil ? 'அனைத்து விநியோகங்கள்' : 'All Deliveries',
+    pending: isTamil ? 'நிலுவையில்' : 'Pending',
+    accepted: isTamil ? 'ஏற்றுக்கொள்ளப்பட்டது' : 'Accepted',
+    pickedUp: isTamil ? 'எடுக்கப்பட்டது' : 'Picked Up',
+    outForDelivery: isTamil ? 'விநியோகத்திற்கு' : 'Out for Delivery',
+    delivered: isTamil ? 'விநியோகிக்கப்பட்டது' : 'Delivered',
+    rejected: isTamil ? 'நிராகரிக்கப்பட்டது' : 'Rejected',
+    enableLocation: isTamil ? 'சிறந்த விநியோக கண்காணிப்புக்கு இருப்பிடப் பகிர்வை இயக்கவும்' : 'Enable location sharing for better delivery tracking',
+    orderNo: isTamil ? 'ஆர்டர் எண்' : 'Order #',
+    assigned: isTamil ? 'ஒதுக்கப்பட்டது' : 'Assigned',
+    customerDetails: isTamil ? 'வாடிக்கையாளர் விவரங்கள்' : 'Customer Details',
+    deliveryDetails: isTamil ? 'விநியோக விவரங்கள்' : 'Delivery Details',
+    note: isTamil ? 'குறிப்பு' : 'Note',
+    eta: isTamil ? 'மதிப்பிடப்பட்ட நேரம்' : 'ETA',
+    items: isTamil ? 'பொருட்கள்' : 'Items',
+    quantity: isTamil ? 'அளவு' : 'Quantity',
+    total: isTamil ? 'மொத்தம்' : 'Total',
+    acceptDelivery: isTamil ? 'விநியோகத்தை ஏற்க' : 'Accept Delivery',
+    reject: isTamil ? 'நிராகரி' : 'Reject',
+    provideReason: isTamil ? 'நிராகரிப்பதற்கான காரணத்தைக் கூறவும்:' : 'Please provide reason for rejection:',
+    markAs: isTamil ? 'என குறிக்கவும்' : 'Mark as',
+    navigate: isTamil ? 'வழிசெலுத்தல்' : 'Navigate',
+    viewTracking: isTamil ? 'கண்காணிப்பைக் காண்க' : 'View Tracking',
+    rejectionReason: isTamil ? 'நிராகரிப்புக்கான காரணம்' : 'Rejection Reason',
+    noDeliveries: isTamil ? 'விநியோகங்கள் எதுவும் இல்லை' : 'No deliveries found',
+    checkBack: isTamil ? 'புதிய பணிகளுக்கு பின்னர் மீண்டும் சரிபார்க்கவும்' : 'Check back later for new assignments',
+    updateStatus: isTamil ? 'விநியோக நிலையைப் புதுப்பிக்கவும்' : 'Update Delivery Status',
+    newStatus: isTamil ? 'புதிய நிலை' : 'New Status',
+    notes: isTamil ? 'குறிப்புகள் (விரும்பினால்)' : 'Notes (Optional)',
+    addNotes: isTamil ? 'இந்த விநியோகம் பற்றிய குறிப்புகளைச் சேர்க்கவும்...' : 'Add any notes about this delivery...',
+    locationUpdate: isTamil ? '📍 இருப்பிடம் இந்த நிலையுடன் புதுப்பிக்கப்படும்' : '📍 Location will be updated with this status',
+    updating: isTamil ? 'புதுப்பிக்கிறது...' : 'Updating...',
+    cancel: isTamil ? 'ரத்து செய்' : 'Cancel',
+    confirmReject: isTamil ? 'நிராகரிப்பை உறுதிப்படுத்தவும்' : 'Confirm Reject'
+  };
 
   useEffect(() => {
     fetchAssignments();
@@ -172,6 +212,18 @@ const AssignedDeliveries: React.FC = () => {
     return statusFlow[currentStatus] || [];
   };
 
+  const getStatusText = (status: string) => {
+    const statusMap: { [key: string]: string } = {
+      'PENDING': isTamil ? 'நிலுவையில்' : 'Pending',
+      'ACCEPTED': isTamil ? 'ஏற்றுக்கொள்ளப்பட்டது' : 'Accepted',
+      'PICKED_UP': isTamil ? 'எடுக்கப்பட்டது' : 'Picked Up',
+      'OUT_FOR_DELIVERY': isTamil ? 'விநியோகத்திற்கு' : 'Out for Delivery',
+      'DELIVERED': isTamil ? 'விநியோகிக்கப்பட்டது' : 'Delivered',
+      'REJECTED': isTamil ? 'நிராகரிக்கப்பட்டது' : 'Rejected'
+    };
+    return statusMap[status] || status;
+  };
+
   const getStatusColor = (status: string) => {
     const colors: { [key: string]: string } = {
       'PENDING': 'bg-yellow-100 text-yellow-800',
@@ -196,20 +248,20 @@ const AssignedDeliveries: React.FC = () => {
   return (
     <div className="max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Assigned Deliveries</h1>
+        <h1 className="text-2xl font-bold">{t.pageTitle}</h1>
         <div className="flex gap-2">
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="input-field w-48"
           >
-            <option value="ALL">All Deliveries</option>
-            <option value="PENDING">Pending</option>
-            <option value="ACCEPTED">Accepted</option>
-            <option value="PICKED_UP">Picked Up</option>
-            <option value="OUT_FOR_DELIVERY">Out for Delivery</option>
-            <option value="DELIVERED">Delivered</option>
-            <option value="REJECTED">Rejected</option>
+            <option value="ALL">{t.allDeliveries}</option>
+            <option value="PENDING">{t.pending}</option>
+            <option value="ACCEPTED">{t.accepted}</option>
+            <option value="PICKED_UP">{t.pickedUp}</option>
+            <option value="OUT_FOR_DELIVERY">{t.outForDelivery}</option>
+            <option value="DELIVERED">{t.delivered}</option>
+            <option value="REJECTED">{t.rejected}</option>
           </select>
         </div>
       </div>
@@ -218,7 +270,7 @@ const AssignedDeliveries: React.FC = () => {
       {!currentLocation && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
           <p className="text-yellow-800">
-            ⚠️ Enable location sharing for better delivery tracking
+            ⚠️ {t.enableLocation}
           </p>
         </div>
       )}
@@ -232,14 +284,14 @@ const AssignedDeliveries: React.FC = () => {
               <div className="flex flex-wrap justify-between items-center">
                 <div>
                   <span className="font-mono text-sm text-gray-500">
-                    Order #{assignment.order.order_number}
+                    {t.orderNo} {assignment.order.order_number}
                   </span>
                   <span className={`ml-4 px-2 py-1 rounded-full text-xs ${getStatusColor(assignment.status)}`}>
-                    {assignment.status}
+                    {getStatusText(assignment.status)}
                   </span>
                 </div>
                 <div className="text-sm text-gray-500">
-                  Assigned: {new Date(assignment.assigned_at).toLocaleString()}
+                  {t.assigned}: {new Date(assignment.assigned_at).toLocaleString(isTamil ? 'ta-IN' : 'en-IN')}
                 </div>
               </div>
             </div>
@@ -249,23 +301,23 @@ const AssignedDeliveries: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 {/* Customer Info */}
                 <div>
-                  <h3 className="font-semibold mb-2">Customer Details</h3>
+                  <h3 className="font-semibold mb-2">{t.customerDetails}</h3>
                   <p className="text-gray-700">{assignment.order.customer_name}</p>
                   <p className="text-sm text-gray-600">📞 {assignment.order.customer_phone}</p>
                 </div>
 
                 {/* Delivery Info */}
                 <div>
-                  <h3 className="font-semibold mb-2">Delivery Details</h3>
+                  <h3 className="font-semibold mb-2">{t.deliveryDetails}</h3>
                   <p className="text-sm text-gray-700">{assignment.order.delivery_address}</p>
                   {assignment.order.delivery_instructions && (
                     <p className="text-sm text-gray-500 mt-1">
-                      Note: {assignment.order.delivery_instructions}
+                      {t.note}: {assignment.order.delivery_instructions}
                     </p>
                   )}
                   {assignment.estimated_delivery_time && (
                     <p className="text-sm text-blue-600 mt-1">
-                      ETA: {new Date(assignment.estimated_delivery_time).toLocaleString()}
+                      {t.eta}: {new Date(assignment.estimated_delivery_time).toLocaleString(isTamil ? 'ta-IN' : 'en-IN')}
                     </p>
                   )}
                 </div>
@@ -273,12 +325,12 @@ const AssignedDeliveries: React.FC = () => {
 
               {/* Order Items */}
               <div className="mb-4">
-                <h3 className="font-semibold mb-2">Items</h3>
+                <h3 className="font-semibold mb-2">{t.items}</h3>
                 <div className="bg-gray-50 p-3 rounded">
                   {assignment.order.items.map((item, index) => (
                     <div key={index} className="flex justify-between text-sm">
                       <span>{item.product_name}</span>
-                      <span>Quantity: {item.quantity}</span>
+                      <span>{t.quantity}: {item.quantity}</span>
                     </div>
                   ))}
                 </div>
@@ -287,7 +339,7 @@ const AssignedDeliveries: React.FC = () => {
               {/* Total Amount */}
               <div className="flex justify-end mb-4">
                 <p className="text-lg font-bold text-green-600">
-                  Total: ₹{assignment.order.total_amount}
+                  {t.total}: ₹{assignment.order.total_amount}
                 </p>
               </div>
 
@@ -299,16 +351,16 @@ const AssignedDeliveries: React.FC = () => {
                       onClick={() => handleAccept(assignment.id)}
                       className="btn-primary"
                     >
-                      Accept Delivery
+                      {t.acceptDelivery}
                     </button>
                     <button
                       onClick={() => {
-                        const reason = prompt('Please provide reason for rejection:');
+                        const reason = prompt(t.provideReason);
                         if (reason) handleReject(assignment.id, reason);
                       }}
                       className="btn-danger"
                     >
-                      Reject
+                      {t.reject}
                     </button>
                   </>
                 )}
@@ -323,7 +375,7 @@ const AssignedDeliveries: React.FC = () => {
                     }}
                     className="btn-primary"
                   >
-                    Mark as {status}
+                    {t.markAs} {getStatusText(status)}
                   </button>
                 ))}
 
@@ -331,7 +383,7 @@ const AssignedDeliveries: React.FC = () => {
                   onClick={() => openInGoogleMaps(assignment.order.delivery_address)}
                   className="btn-secondary"
                 >
-                  🗺️ Navigate
+                  🗺️ {t.navigate}
                 </button>
 
                 <Link
@@ -339,7 +391,7 @@ const AssignedDeliveries: React.FC = () => {
                   className="btn-secondary"
                   target="_blank"
                 >
-                  👁️ View Tracking
+                  👁️ {t.viewTracking}
                 </Link>
               </div>
 
@@ -347,7 +399,7 @@ const AssignedDeliveries: React.FC = () => {
               {assignment.status === 'REJECTED' && assignment.rejection_reason && (
                 <div className="mt-4 p-3 bg-red-50 rounded">
                   <p className="text-sm text-red-700">
-                    <span className="font-semibold">Rejection Reason:</span> {assignment.rejection_reason}
+                    <span className="font-semibold">{t.rejectionReason}:</span> {assignment.rejection_reason}
                   </p>
                 </div>
               )}
@@ -358,8 +410,8 @@ const AssignedDeliveries: React.FC = () => {
         {filteredAssignments.length === 0 && (
           <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
             <p className="text-6xl mb-4">🚚</p>
-            <p className="text-xl mb-2">No deliveries found</p>
-            <p className="text-sm">Check back later for new assignments</p>
+            <p className="text-xl mb-2">{t.noDeliveries}</p>
+            <p className="text-sm">{t.checkBack}</p>
           </div>
         )}
       </div>
@@ -368,28 +420,28 @@ const AssignedDeliveries: React.FC = () => {
       {showStatusModal && selectedAssignment && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h2 className="text-xl font-semibold mb-4">Update Delivery Status</h2>
+            <h2 className="text-xl font-semibold mb-4">{t.updateStatus}</h2>
             
             <p className="text-gray-600 mb-4">
-              Order #{selectedAssignment.order.order_number}
+              {t.orderNo} {selectedAssignment.order.order_number}
             </p>
 
             <div className="mb-4">
-              <label className="block text-gray-700 mb-2">New Status</label>
+              <label className="block text-gray-700 mb-2">{t.newStatus}</label>
               <input
                 type="text"
-                value={newStatus}
+                value={getStatusText(newStatus)}
                 readOnly
                 className="input-field bg-gray-50"
               />
             </div>
 
             <div className="mb-4">
-              <label className="block text-gray-700 mb-2">Notes (Optional)</label>
+              <label className="block text-gray-700 mb-2">{t.notes}</label>
               <textarea
                 value={statusNote}
                 onChange={(e) => setStatusNote(e.target.value)}
-                placeholder="Add any notes about this delivery..."
+                placeholder={t.addNotes}
                 rows={3}
                 className="input-field"
               />
@@ -398,7 +450,7 @@ const AssignedDeliveries: React.FC = () => {
             {currentLocation && (
               <div className="mb-4 p-3 bg-green-50 rounded">
                 <p className="text-sm text-green-700">
-                  📍 Location will be updated with this status
+                  {t.locationUpdate}
                 </p>
               </div>
             )}
@@ -409,7 +461,7 @@ const AssignedDeliveries: React.FC = () => {
                 disabled={updating}
                 className="btn-primary flex-1"
               >
-                {updating ? 'Updating...' : 'Update Status'}
+                {updating ? t.updating : t.updateStatus}
               </button>
               <button
                 onClick={() => {
@@ -420,7 +472,7 @@ const AssignedDeliveries: React.FC = () => {
                 }}
                 className="btn-secondary flex-1"
               >
-                Cancel
+                {t.cancel}
               </button>
             </div>
           </div>

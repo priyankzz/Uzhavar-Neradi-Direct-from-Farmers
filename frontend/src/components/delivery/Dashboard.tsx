@@ -1,5 +1,5 @@
 /**
- * Delivery Partner Dashboard Component
+ * Delivery Partner Dashboard Component - Complete Bilingual
  * Copy to: frontend/src/components/delivery/Dashboard.tsx
  */
 
@@ -35,7 +35,9 @@ interface ActiveDelivery {
 
 const DeliveryDashboard: React.FC = () => {
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { language } = useLanguage();
+  const isTamil = language === 'ta';
+  
   const [stats, setStats] = useState<DeliveryStats>({
     totalDeliveries: 0,
     completedToday: 0,
@@ -47,6 +49,43 @@ const DeliveryDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locationError, setLocationError] = useState('');
+
+  // Tamil translations
+  const t = {
+    welcome: isTamil ? 'மீண்டும் வரவேற்கிறோம்' : 'Welcome back',
+    welcomeDesc: isTamil 
+      ? 'உங்கள் விநியோகங்களை நிர்வகிக்கவும், உங்கள் வருவாயை கண்காணிக்கவும்.' 
+      : 'Manage your deliveries and track your earnings here.',
+    locationActive: isTamil ? 'இருப்பிடம் பகிர்வு செயலில் உள்ளது' : 'Location sharing active',
+    locationUnavailable: isTamil ? 'இருப்பிடம் பகிர்வு கிடைக்கவில்லை' : 'Location sharing unavailable',
+    enableLocation: isTamil ? 'இருப்பிடத்தை இயக்கு' : 'Enable Location',
+    lat: isTamil ? 'அகலாங்கு' : 'Lat',
+    lng: isTamil ? 'நெட்டாங்கு' : 'Lng',
+    totalDeliveries: isTamil ? 'மொத்த விநியோகங்கள்' : 'Total Deliveries',
+    completedToday: isTamil ? 'இன்று முடிந்தவை' : 'Completed Today',
+    pending: isTamil ? 'நிலுவையில்' : 'Pending',
+    todayEarnings: isTamil ? 'இன்றைய வருவாய்' : "Today's Earnings",
+    averageRating: isTamil ? 'சராசரி மதிப்பீடு' : 'Average Rating',
+    viewAssignments: isTamil ? 'பணிகளைக் காண்க' : 'View Assignments',
+    viewAssignmentsDesc: isTamil ? 'நிலுவையில் உள்ள விநியோக கோரிக்கைகளைப் பார்க்கவும்' : 'See all pending delivery requests',
+    performance: isTamil ? 'செயல்திறன்' : 'Performance',
+    onTimeDelivery: isTamil ? 'சரியான நேர விநியோகம்' : 'On-time delivery',
+    activeDeliveries: isTamil ? 'செயலில் உள்ள விநியோகங்கள்' : 'Active Deliveries',
+    noActiveDeliveries: isTamil ? 'செயலில் உள்ள விநியோகங்கள் இல்லை' : 'No active deliveries',
+    checkAssignments: isTamil ? 'புதிய விநியோக கோரிக்கைகளுக்கு பணிகளைச் சரிபார்க்கவும்' : 'Check assignments for new delivery requests',
+    deliveryTips: isTamil ? 'விநியோக உதவிக்குறிப்புகள்' : 'Delivery Tips',
+    tip1: isTamil ? 'பொருளை ஒப்படைக்கும் முன் வாடிக்கையாளர் அடையாளத்தை எப்போதும் சரிபார்க்கவும்' : 'Always verify customer identity before handing over the order',
+    tip2: isTamil ? 'துல்லியமான கண்காணிப்புக்கு நிலையை உடனுக்குடன் புதுப்பிக்கவும்' : 'Update status promptly for accurate tracking',
+    tip3: isTamil ? 'சிறந்த பாதை மேம்படுத்தலுக்கு உங்கள் இருப்பிடப் பகிர்வை இயக்கத்தில் வைத்திருங்கள்' : 'Keep your location sharing on for better route optimization',
+    tip4: isTamil ? 'விநியோகத்தில் ஏதேனும் சிக்கல் இருந்தால் ஆதரவைத் தொடர்பு கொள்ளவும்' : 'Contact support if you face any issues with delivery',
+    updateStatus: isTamil ? 'நிலையைப் புதுப்பிக்க' : 'Update Status',
+    navigate: isTamil ? 'வழிசெலுத்தல்' : 'Navigate',
+    orderNo: isTamil ? 'ஆர்டர் எண்' : 'Order #',
+    deliveryAddress: isTamil ? 'விநியோக முகவரி' : 'Delivery Address',
+    contact: isTamil ? 'தொடர்பு' : 'Contact',
+    items: isTamil ? 'பொருட்கள்' : 'Items',
+    today: isTamil ? 'இன்று' : 'Today'
+  };
 
   useEffect(() => {
     fetchDashboardData();
@@ -81,7 +120,6 @@ const DeliveryDashboard: React.FC = () => {
         ['ACCEPTED', 'PICKED_UP', 'OUT_FOR_DELIVERY'].includes(d.status)
       ).length;
 
-      // Mock stats for now (will be replaced with real API)
       setStats({
         totalDeliveries: deliveries.length,
         completedToday,
@@ -112,12 +150,12 @@ const DeliveryDashboard: React.FC = () => {
           });
         },
         (error) => {
-          setLocationError('Unable to get your location');
+          setLocationError(isTamil ? 'உங்கள் இருப்பிடத்தைப் பெற முடியவில்லை' : 'Unable to get your location');
           console.error('Geolocation error:', error);
         }
       );
     } else {
-      setLocationError('Geolocation is not supported by your browser');
+      setLocationError(isTamil ? 'உங்கள் உலாவி இருப்பிடத்தை ஆதரிக்கவில்லை' : 'Geolocation is not supported by your browser');
     }
   };
 
@@ -135,6 +173,18 @@ const DeliveryDashboard: React.FC = () => {
         console.error('Failed to update location:', error);
       }
     }
+  };
+
+  const getStatusText = (status: string) => {
+    const statusMap: { [key: string]: string } = {
+      'PENDING': isTamil ? 'நிலுவையில்' : 'Pending',
+      'ACCEPTED': isTamil ? 'ஏற்றுக்கொள்ளப்பட்டது' : 'Accepted',
+      'PICKED_UP': isTamil ? 'எடுக்கப்பட்டது' : 'Picked Up',
+      'OUT_FOR_DELIVERY': isTamil ? 'விநியோகத்திற்கு' : 'Out for Delivery',
+      'DELIVERED': isTamil ? 'விநியோகிக்கப்பட்டது' : 'Delivered',
+      'REJECTED': isTamil ? 'நிராகரிக்கப்பட்டது' : 'Rejected'
+    };
+    return statusMap[status] || status;
   };
 
   const getStatusColor = (status: string) => {
@@ -158,10 +208,10 @@ const DeliveryDashboard: React.FC = () => {
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg p-8 mb-8 text-white">
         <h1 className="text-3xl font-bold mb-2">
-          Welcome back, {user?.username}! 🚚
+          {t.welcome}, {user?.username}! 🚚
         </h1>
         <p className="text-blue-100">
-          Manage your deliveries and track your earnings here.
+          {t.welcomeDesc}
         </p>
       </div>
 
@@ -174,14 +224,14 @@ const DeliveryDashboard: React.FC = () => {
             <span className="text-2xl mr-3">📍</span>
             <div>
               <p className="font-medium">
-                {currentLocation ? 'Location sharing active' : 'Location sharing unavailable'}
+                {currentLocation ? t.locationActive : t.locationUnavailable}
               </p>
               {currentLocation ? (
                 <p className="text-sm text-gray-600">
-                  Lat: {currentLocation.lat.toFixed(6)}, Lng: {currentLocation.lng.toFixed(6)}
+                  {t.lat}: {currentLocation.lat.toFixed(6)}, {t.lng}: {currentLocation.lng.toFixed(6)}
                 </p>
               ) : (
-                <p className="text-sm text-yellow-700">{locationError || 'Enable location for better tracking'}</p>
+                <p className="text-sm text-yellow-700">{locationError || t.locationUnavailable}</p>
               )}
             </div>
           </div>
@@ -190,7 +240,7 @@ const DeliveryDashboard: React.FC = () => {
               onClick={getCurrentLocation}
               className="btn-primary text-sm"
             >
-              Enable Location
+              {t.enableLocation}
             </button>
           )}
         </div>
@@ -201,31 +251,31 @@ const DeliveryDashboard: React.FC = () => {
         <div className="bg-white rounded-lg shadow p-4">
           <div className="text-2xl mb-1">📦</div>
           <div className="text-xl font-bold">{stats.totalDeliveries}</div>
-          <div className="text-xs text-gray-600">Total Deliveries</div>
+          <div className="text-xs text-gray-600">{t.totalDeliveries}</div>
         </div>
 
         <div className="bg-white rounded-lg shadow p-4">
           <div className="text-2xl mb-1">✅</div>
           <div className="text-xl font-bold">{stats.completedToday}</div>
-          <div className="text-xs text-gray-600">Completed Today</div>
+          <div className="text-xs text-gray-600">{t.completedToday}</div>
         </div>
 
         <div className="bg-white rounded-lg shadow p-4">
           <div className="text-2xl mb-1">⏳</div>
           <div className="text-xl font-bold">{stats.pendingDeliveries}</div>
-          <div className="text-xs text-gray-600">Pending</div>
+          <div className="text-xs text-gray-600">{t.pending}</div>
         </div>
 
         <div className="bg-white rounded-lg shadow p-4">
           <div className="text-2xl mb-1">💰</div>
           <div className="text-xl font-bold">₹{stats.totalEarnings}</div>
-          <div className="text-xs text-gray-600">Today's Earnings</div>
+          <div className="text-xs text-gray-600">{t.todayEarnings}</div>
         </div>
 
         <div className="bg-white rounded-lg shadow p-4">
           <div className="text-2xl mb-1">⭐</div>
           <div className="text-xl font-bold">{stats.averageRating}</div>
-          <div className="text-xs text-gray-600">Average Rating</div>
+          <div className="text-xs text-gray-600">{t.averageRating}</div>
         </div>
       </div>
 
@@ -234,23 +284,23 @@ const DeliveryDashboard: React.FC = () => {
         <Link to="/delivery/assignments" className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition flex items-center">
           <div className="text-4xl mr-4">📋</div>
           <div>
-            <h3 className="font-semibold text-lg">View Assignments</h3>
-            <p className="text-gray-600 text-sm">See all pending delivery requests</p>
+            <h3 className="font-semibold text-lg">{t.viewAssignments}</h3>
+            <p className="text-gray-600 text-sm">{t.viewAssignmentsDesc}</p>
           </div>
         </Link>
 
         <div className="bg-white rounded-lg shadow p-6 flex items-center">
           <div className="text-4xl mr-4">📊</div>
           <div>
-            <h3 className="font-semibold text-lg">Performance</h3>
-            <p className="text-gray-600 text-sm">On-time delivery: 98%</p>
+            <h3 className="font-semibold text-lg">{t.performance}</h3>
+            <p className="text-gray-600 text-sm">{t.onTimeDelivery}: 98%</p>
           </div>
         </div>
       </div>
 
       {/* Active Deliveries */}
       <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-4">Active Deliveries</h2>
+        <h2 className="text-xl font-semibold mb-4">{t.activeDeliveries}</h2>
         
         {activeDeliveries.length > 0 ? (
           <div className="space-y-4">
@@ -259,29 +309,29 @@ const DeliveryDashboard: React.FC = () => {
                 <div className="flex justify-between items-start mb-3">
                   <div>
                     <p className="font-mono text-sm text-gray-500">
-                      Order #{delivery.order_number}
+                      {t.orderNo} {delivery.order_number}
                     </p>
                     <p className="font-semibold">{delivery.customer_name}</p>
                   </div>
                   <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(delivery.status)}`}>
-                    {delivery.status}
+                    {getStatusText(delivery.status)}
                   </span>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
                   <div>
-                    <p className="text-sm text-gray-500">Delivery Address</p>
+                    <p className="text-sm text-gray-500">{t.deliveryAddress}</p>
                     <p className="text-sm">{delivery.customer_address}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Contact</p>
+                    <p className="text-sm text-gray-500">{t.contact}</p>
                     <p className="text-sm">{delivery.customer_phone}</p>
                   </div>
                 </div>
 
                 <div className="flex justify-between items-center">
                   <div>
-                    <p className="text-sm text-gray-500">Items:</p>
+                    <p className="text-sm text-gray-500">{t.items}:</p>
                     <p className="text-sm">
                       {delivery.items.map(item => `${item.product_name} x${item.quantity}`).join(', ')}
                     </p>
@@ -294,13 +344,16 @@ const DeliveryDashboard: React.FC = () => {
                     to={`/delivery/assignments/${delivery.id}`}
                     className="btn-primary text-sm"
                   >
-                    Update Status
+                    {t.updateStatus}
                   </Link>
                   <button
-                    onClick={() => {/* Open navigation */}}
+                    onClick={() => {
+                      const address = encodeURIComponent(delivery.customer_address);
+                      window.open(`https://www.google.com/maps/search/?api=1&query=${address}`, '_blank');
+                    }}
                     className="btn-secondary text-sm"
                   >
-                    Navigate
+                    {t.navigate}
                   </button>
                 </div>
               </div>
@@ -309,20 +362,20 @@ const DeliveryDashboard: React.FC = () => {
         ) : (
           <div className="text-center py-8 text-gray-500">
             <p className="text-4xl mb-3">🚚</p>
-            <p>No active deliveries</p>
-            <p className="text-sm mt-2">Check assignments for new delivery requests</p>
+            <p>{t.noActiveDeliveries}</p>
+            <p className="text-sm mt-2">{t.checkAssignments}</p>
           </div>
         )}
       </div>
 
       {/* Quick Tips */}
       <div className="mt-8 bg-blue-50 rounded-lg p-4">
-        <h3 className="font-semibold text-blue-800 mb-2">Delivery Tips</h3>
+        <h3 className="font-semibold text-blue-800 mb-2">{t.deliveryTips}</h3>
         <ul className="text-sm text-blue-700 space-y-1">
-          <li>• Always verify customer identity before handing over the order</li>
-          <li>• Update status promptly for accurate tracking</li>
-          <li>• Keep your location sharing on for better route optimization</li>
-          <li>• Contact support if you face any issues with delivery</li>
+          <li>• {t.tip1}</li>
+          <li>• {t.tip2}</li>
+          <li>• {t.tip3}</li>
+          <li>• {t.tip4}</li>
         </ul>
       </div>
     </div>

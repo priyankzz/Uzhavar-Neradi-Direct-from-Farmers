@@ -1,5 +1,5 @@
 /**
- * Farmer Dashboard Component
+ * Farmer Dashboard Component - Bilingual
  * Copy to: frontend/src/components/farmer/Dashboard.tsx
  */
 
@@ -37,7 +37,9 @@ interface TopProduct {
 
 const FarmerDashboard: React.FC = () => {
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { language } = useLanguage();
+  const isTamil = language === 'ta';
+  
   const [stats, setStats] = useState<DashboardStats>({
     totalProducts: 0,
     totalOrders: 0,
@@ -50,19 +52,45 @@ const FarmerDashboard: React.FC = () => {
   const [topProducts, setTopProducts] = useState<TopProduct[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Tamil translations
+  const t = {
+    welcome: isTamil ? 'மீண்டும் வரவேற்கிறோம்' : 'Welcome back',
+    manageFarm: isTamil 
+      ? 'உங்கள் பொருட்களை நிர்வகிக்கவும், ஆர்டர்களை கண்காணிக்கவும், தேவை நுண்ணறிவுகளைப் பார்க்கவும்.' 
+      : 'Manage your products, track orders, and view demand insights here.',
+    totalProducts: isTamil ? 'மொத்த பொருட்கள்' : 'Total Products',
+    totalOrders: isTamil ? 'மொத்த ஆர்டர்கள்' : 'Total Orders',
+    pending: isTamil ? 'நிலுவையில்' : 'Pending',
+    totalRevenue: isTamil ? 'மொத்த வருவாய்' : 'Total Revenue',
+    todayOrders: isTamil ? 'இன்றைய ஆர்டர்கள்' : 'Today\'s Orders',
+    todayRevenue: isTamil ? 'இன்றைய வருவாய்' : 'Today\'s Revenue',
+    addProduct: isTamil ? 'பொருள் சேர்க்க' : 'Add Product',
+    addProductDesc: isTamil ? 'வாடிக்கையாளர்களுக்கு புதிய பொருட்களை பட்டியலிடுங்கள்' : 'List new products for customers',
+    manageOrders: isTamil ? 'ஆர்டர்களை நிர்வகிக்க' : 'Manage Orders',
+    manageOrdersDesc: isTamil ? 'ஆர்டர் நிலையைப் பார்க்கவும் புதுப்பிக்கவும்' : 'View and update order status',
+    demandInsights: isTamil ? 'தேவை நுண்ணறிவுகள்' : 'Demand Insights',
+    demandInsightsDesc: isTamil ? 'AI-இயங்கும் தேவை கணிப்புகள்' : 'AI-powered demand predictions',
+    recentOrders: isTamil ? 'சமீபத்திய ஆர்டர்கள்' : 'Recent Orders',
+    viewAll: isTamil ? 'அனைத்தையும் காண்க' : 'View All',
+    topProducts: isTamil ? 'சிறந்த விற்பனையாகும் பொருட்கள்' : 'Top Selling Products',
+    unitsSold: isTamil ? 'அலகுகள் விற்கப்பட்டன' : 'units sold',
+    noOrders: isTamil ? 'இதுவரை ஆர்டர்கள் இல்லை' : 'No orders yet',
+    noSales: isTamil ? 'இதுவரை விற்பனை தரவு இல்லை' : 'No sales data yet',
+    viewAnalytics: isTamil ? 'விரிவான பகுப்பாய்வைக் காண்க' : 'View Detailed Analytics',
+    updateStatus: isTamil ? 'நிலையைப் புதுப்பிக்க' : 'Update Status'
+  };
+
   useEffect(() => {
     fetchDashboardData();
   }, []);
 
   const fetchDashboardData = async () => {
     try {
-      // Fetch products count
       const productsResponse = await axios.get('http://localhost:8000/api/products/', {
         params: { farmer: user?.id },
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       
-      // Fetch orders
       const ordersResponse = await axios.get('http://localhost:8000/api/orders/', {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
@@ -70,7 +98,6 @@ const FarmerDashboard: React.FC = () => {
       const products = productsResponse.data.results || productsResponse.data;
       const orders = ordersResponse.data.results || ordersResponse.data;
 
-      // Calculate stats
       const today = new Date().toDateString();
       const todayOrders = orders.filter((o: any) => 
         new Date(o.created_at).toDateString() === today
@@ -93,10 +120,8 @@ const FarmerDashboard: React.FC = () => {
         todayRevenue
       });
 
-      // Set recent orders
       setRecentOrders(orders.slice(0, 5));
 
-      // Calculate top products
       const productSales: { [key: string]: TopProduct } = {};
       orders.forEach((order: any) => {
         if (order.items) {
@@ -124,6 +149,19 @@ const FarmerDashboard: React.FC = () => {
     }
   };
 
+  const getStatusText = (status: string) => {
+    const statusMap: { [key: string]: string } = {
+      'PENDING': isTamil ? 'நிலுவையில்' : 'Pending',
+      'CONFIRMED': isTamil ? 'உறுதி செய்யப்பட்டது' : 'Confirmed',
+      'ASSIGNED': isTamil ? 'ஒதுக்கப்பட்டது' : 'Assigned',
+      'PICKED_UP': isTamil ? 'எடுக்கப்பட்டது' : 'Picked Up',
+      'OUT_FOR_DELIVERY': isTamil ? 'விநியோகத்திற்கு' : 'Out for Delivery',
+      'DELIVERED': isTamil ? 'விநியோகிக்கப்பட்டது' : 'Delivered',
+      'CANCELLED': isTamil ? 'ரத்து செய்யப்பட்டது' : 'Cancelled'
+    };
+    return statusMap[status] || status;
+  };
+
   const getStatusColor = (status: string) => {
     const colors: { [key: string]: string } = {
       'PENDING': 'bg-yellow-100 text-yellow-800',
@@ -137,20 +175,16 @@ const FarmerDashboard: React.FC = () => {
     return colors[status] || 'bg-gray-100 text-gray-800';
   };
 
-  if (loading) {
-    return <LoadingSpinner fullScreen />;
-  }
+  if (loading) return <LoadingSpinner fullScreen />;
 
   return (
     <div className="max-w-6xl mx-auto">
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow-lg p-8 mb-8 text-white">
         <h1 className="text-3xl font-bold mb-2">
-          Welcome back, {user?.username}! 🌾
+          {t.welcome}, {user?.username}! 🌾
         </h1>
-        <p className="text-green-100">
-          Manage your products, track orders, and view demand insights here.
-        </p>
+        <p className="text-green-100">{t.manageFarm}</p>
       </div>
 
       {/* Stats Cards */}
@@ -158,37 +192,37 @@ const FarmerDashboard: React.FC = () => {
         <div className="bg-white rounded-lg shadow p-4">
           <div className="text-2xl mb-1">📦</div>
           <div className="text-xl font-bold">{stats.totalProducts}</div>
-          <div className="text-xs text-gray-600">Total Products</div>
+          <div className="text-xs text-gray-600">{t.totalProducts}</div>
         </div>
 
         <div className="bg-white rounded-lg shadow p-4">
           <div className="text-2xl mb-1">📋</div>
           <div className="text-xl font-bold">{stats.totalOrders}</div>
-          <div className="text-xs text-gray-600">Total Orders</div>
+          <div className="text-xs text-gray-600">{t.totalOrders}</div>
         </div>
 
         <div className="bg-white rounded-lg shadow p-4">
           <div className="text-2xl mb-1">⏳</div>
           <div className="text-xl font-bold">{stats.pendingOrders}</div>
-          <div className="text-xs text-gray-600">Pending</div>
+          <div className="text-xs text-gray-600">{t.pending}</div>
         </div>
 
         <div className="bg-white rounded-lg shadow p-4">
           <div className="text-2xl mb-1">💰</div>
           <div className="text-xl font-bold">₹{stats.totalRevenue}</div>
-          <div className="text-xs text-gray-600">Total Revenue</div>
+          <div className="text-xs text-gray-600">{t.totalRevenue}</div>
         </div>
 
         <div className="bg-white rounded-lg shadow p-4">
           <div className="text-2xl mb-1">📅</div>
           <div className="text-xl font-bold">{stats.todayOrders}</div>
-          <div className="text-xs text-gray-600">Today's Orders</div>
+          <div className="text-xs text-gray-600">{t.todayOrders}</div>
         </div>
 
         <div className="bg-white rounded-lg shadow p-4">
           <div className="text-2xl mb-1">💵</div>
           <div className="text-xl font-bold">₹{stats.todayRevenue}</div>
-          <div className="text-xs text-gray-600">Today's Revenue</div>
+          <div className="text-xs text-gray-600">{t.todayRevenue}</div>
         </div>
       </div>
 
@@ -197,24 +231,24 @@ const FarmerDashboard: React.FC = () => {
         <Link to="/farmer/products" className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition flex items-center">
           <div className="text-4xl mr-4">➕</div>
           <div>
-            <h3 className="font-semibold text-lg">Add Product</h3>
-            <p className="text-gray-600 text-sm">List new products for customers</p>
+            <h3 className="font-semibold text-lg">{t.addProduct}</h3>
+            <p className="text-gray-600 text-sm">{t.addProductDesc}</p>
           </div>
         </Link>
 
         <Link to="/farmer/orders" className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition flex items-center">
           <div className="text-4xl mr-4">📋</div>
           <div>
-            <h3 className="font-semibold text-lg">Manage Orders</h3>
-            <p className="text-gray-600 text-sm">View and update order status</p>
+            <h3 className="font-semibold text-lg">{t.manageOrders}</h3>
+            <p className="text-gray-600 text-sm">{t.manageOrdersDesc}</p>
           </div>
         </Link>
 
         <Link to="/farmer/insights" className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition flex items-center">
           <div className="text-4xl mr-4">📊</div>
           <div>
-            <h3 className="font-semibold text-lg">Demand Insights</h3>
-            <p className="text-gray-600 text-sm">AI-powered demand predictions</p>
+            <h3 className="font-semibold text-lg">{t.demandInsights}</h3>
+            <p className="text-gray-600 text-sm">{t.demandInsightsDesc}</p>
           </div>
         </Link>
       </div>
@@ -223,9 +257,9 @@ const FarmerDashboard: React.FC = () => {
         {/* Recent Orders */}
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">Recent Orders</h2>
+            <h2 className="text-xl font-semibold">{t.recentOrders}</h2>
             <Link to="/farmer/orders" className="text-green-600 hover:text-green-700 text-sm">
-              View All →
+              {t.viewAll} →
             </Link>
           </div>
 
@@ -239,7 +273,7 @@ const FarmerDashboard: React.FC = () => {
                       <p className="text-sm text-gray-600">{order.customer_name}</p>
                     </div>
                     <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(order.status)}`}>
-                      {order.status}
+                      {getStatusText(order.status)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center mt-2">
@@ -248,20 +282,20 @@ const FarmerDashboard: React.FC = () => {
                       to={`/farmer/orders/${order.id}`}
                       className="text-green-600 hover:text-green-700 text-sm"
                     >
-                      Update Status
+                      {t.updateStatus}
                     </Link>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-center text-gray-500 py-4">No orders yet</p>
+            <p className="text-center text-gray-500 py-4">{t.noOrders}</p>
           )}
         </div>
 
         {/* Top Products */}
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">Top Selling Products</h2>
+          <h2 className="text-xl font-semibold mb-4">{t.topProducts}</h2>
           
           {topProducts.length > 0 ? (
             <div className="space-y-3">
@@ -269,7 +303,9 @@ const FarmerDashboard: React.FC = () => {
                 <div key={product.id} className="flex items-center justify-between">
                   <div className="flex-1">
                     <p className="font-medium">{product.name}</p>
-                    <p className="text-sm text-gray-500">{product.quantity_sold} units sold</p>
+                    <p className="text-sm text-gray-500">
+                      {product.quantity_sold} {t.unitsSold}
+                    </p>
                   </div>
                   <div className="text-right">
                     <p className="font-semibold">₹{product.revenue}</p>
@@ -278,7 +314,7 @@ const FarmerDashboard: React.FC = () => {
               ))}
             </div>
           ) : (
-            <p className="text-center text-gray-500 py-4">No sales data yet</p>
+            <p className="text-center text-gray-500 py-4">{t.noSales}</p>
           )}
 
           <div className="mt-4 pt-4 border-t">
@@ -286,7 +322,7 @@ const FarmerDashboard: React.FC = () => {
               to="/farmer/insights" 
               className="text-green-600 hover:text-green-700 text-sm flex items-center justify-center"
             >
-              View Detailed Analytics →
+              {t.viewAnalytics} →
             </Link>
           </div>
         </div>

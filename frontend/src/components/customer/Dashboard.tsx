@@ -1,5 +1,5 @@
 /**
- * Customer Dashboard Component
+ * Customer Dashboard Component - Bilingual
  * Copy to: frontend/src/components/customer/Dashboard.tsx
  */
 
@@ -19,9 +19,10 @@ interface Order {
   order_type: string;
 }
 
-const Dashboard: React.FC = () => {
+const CustomerDashboard: React.FC = () => {
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { language } = useLanguage();
+  const isTamil = language === 'ta';
   const [recentOrders, setRecentOrders] = useState<Order[]>([]);
   const [stats, setStats] = useState({
     totalOrders: 0,
@@ -31,23 +32,54 @@ const Dashboard: React.FC = () => {
   });
   const [loading, setLoading] = useState(true);
 
+  // Tamil translations
+  const t = {
+    welcome: isTamil ? 'மீண்டும் வரவேற்கிறோம்' : 'Welcome back',
+    browseFresh: isTamil 
+      ? 'விவசாயிகளிடமிருந்து நேரடியாக புத்துணர்ச்சியான பொருட்களை உலாவி உங்கள் ஆர்டர்களை இங்கே கண்காணிக்கவும்.' 
+      : 'Browse fresh produce directly from farmers and track your orders here.',
+    totalOrders: isTamil ? 'மொத்த ஆர்டர்கள்' : 'Total Orders',
+    totalSpent: isTamil ? 'மொத்த செலவு' : 'Total Spent',
+    pendingOrders: isTamil ? 'நிலுவையில் உள்ள ஆர்டர்கள்' : 'Pending Orders',
+    delivered: isTamil ? 'விநியோகிக்கப்பட்டது' : 'Delivered',
+    browseProducts: isTamil ? 'பொருட்களை உலாவுக' : 'Browse Products',
+    exploreProducts: isTamil ? 'உள்ளூர் விவசாயிகளிடமிருந்து புத்துணர்ச்சியான பொருட்களை ஆராயுங்கள்' : 'Explore fresh produce from local farmers',
+    myOrders: isTamil ? 'எனது ஆர்டர்கள்' : 'My Orders',
+    trackOrders: isTamil ? 'உங்கள் ஆர்டர்களை கண்காணிக்கவும் நிர்வகிக்கவும்' : 'Track and manage your orders',
+    myProfile: isTamil ? 'எனது சுயவிவரம்' : 'My Profile',
+    updateDetails: isTamil ? 'உங்கள் விவரங்கள் மற்றும் விருப்பங்களைப் புதுப்பிக்கவும்' : 'Update your details and preferences',
+    recentOrders: isTamil ? 'சமீபத்திய ஆர்டர்கள்' : 'Recent Orders',
+    viewAll: isTamil ? 'அனைத்தையும் காண்க' : 'View All',
+    orderNo: isTamil ? 'ஆர்டர் எண்' : 'Order #',
+    date: isTamil ? 'தேதி' : 'Date',
+    type: isTamil ? 'வகை' : 'Type',
+    amount: isTamil ? 'தொகை' : 'Amount',
+    status: isTamil ? 'நிலை' : 'Status',
+    action: isTamil ? 'செயல்' : 'Action',
+    track: isTamil ? 'கண்காணி' : 'Track',
+    noOrders: isTamil ? 'இதுவரை ஆர்டர்கள் இல்லை' : 'No orders yet',
+    startShopping: isTamil ? 'ஷாப்பிங் தொடங்குங்கள்' : 'Start Shopping',
+    pending: isTamil ? 'நிலுவையில்' : 'Pending',
+    confirmed: isTamil ? 'உறுதி செய்யப்பட்டது' : 'Confirmed',
+    assigned: isTamil ? 'ஒதுக்கப்பட்டது' : 'Assigned',
+    pickedUp: isTamil ? 'எடுக்கப்பட்டது' : 'Picked Up',
+    outForDelivery: isTamil ? 'விநியோகத்திற்கு' : 'Out for Delivery',
+    cancelled: isTamil ? 'ரத்து செய்யப்பட்டது' : 'Cancelled'
+  };
+
   useEffect(() => {
     fetchDashboardData();
   }, []);
 
   const fetchDashboardData = async () => {
     try {
-      // Fetch recent orders
       const ordersResponse = await axios.get('http://localhost:8000/api/orders/', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       
       const orders = ordersResponse.data.results || ordersResponse.data;
       setRecentOrders(orders.slice(0, 5));
 
-      // Calculate stats
       const totalOrders = orders.length;
       const totalSpent = orders
         .filter((o: Order) => o.status === 'DELIVERED')
@@ -57,17 +89,25 @@ const Dashboard: React.FC = () => {
       ).length;
       const deliveredOrders = orders.filter((o: Order) => o.status === 'DELIVERED').length;
 
-      setStats({
-        totalOrders,
-        totalSpent,
-        pendingOrders,
-        deliveredOrders
-      });
+      setStats({ totalOrders, totalSpent, pendingOrders, deliveredOrders });
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const getStatusText = (status: string) => {
+    const statusMap: { [key: string]: string } = {
+      'PENDING': t.pending,
+      'CONFIRMED': t.confirmed,
+      'ASSIGNED': t.assigned,
+      'PICKED_UP': t.pickedUp,
+      'OUT_FOR_DELIVERY': t.outForDelivery,
+      'DELIVERED': t.delivered,
+      'CANCELLED': t.cancelled
+    };
+    return statusMap[status] || status;
   };
 
   const getStatusColor = (status: string) => {
@@ -83,20 +123,16 @@ const Dashboard: React.FC = () => {
     return colors[status] || 'bg-gray-100 text-gray-800';
   };
 
-  if (loading) {
-    return <LoadingSpinner fullScreen />;
-  }
+  if (loading) return <LoadingSpinner fullScreen />;
 
   return (
     <div className="max-w-6xl mx-auto">
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow-lg p-8 mb-8 text-white">
         <h1 className="text-3xl font-bold mb-2">
-          Welcome back, {user?.username}! 👋
+          {t.welcome}, {user?.username}! 👋
         </h1>
-        <p className="text-green-100">
-          Browse fresh produce directly from farmers and track your orders here.
-        </p>
+        <p className="text-green-100">{t.browseFresh}</p>
       </div>
 
       {/* Stats Cards */}
@@ -104,25 +140,25 @@ const Dashboard: React.FC = () => {
         <div className="bg-white rounded-lg shadow p-6">
           <div className="text-3xl mb-2">📦</div>
           <div className="text-2xl font-bold">{stats.totalOrders}</div>
-          <div className="text-gray-600">Total Orders</div>
+          <div className="text-gray-600">{t.totalOrders}</div>
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
           <div className="text-3xl mb-2">💰</div>
           <div className="text-2xl font-bold">₹{stats.totalSpent}</div>
-          <div className="text-gray-600">Total Spent</div>
+          <div className="text-gray-600">{t.totalSpent}</div>
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
           <div className="text-3xl mb-2">⏳</div>
           <div className="text-2xl font-bold">{stats.pendingOrders}</div>
-          <div className="text-gray-600">Pending Orders</div>
+          <div className="text-gray-600">{t.pendingOrders}</div>
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
           <div className="text-3xl mb-2">✅</div>
           <div className="text-2xl font-bold">{stats.deliveredOrders}</div>
-          <div className="text-gray-600">Delivered</div>
+          <div className="text-gray-600">{t.delivered}</div>
         </div>
       </div>
 
@@ -131,24 +167,24 @@ const Dashboard: React.FC = () => {
         <Link to="/products" className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition flex items-center">
           <div className="text-4xl mr-4">🛒</div>
           <div>
-            <h3 className="font-semibold text-lg">Browse Products</h3>
-            <p className="text-gray-600 text-sm">Explore fresh produce from local farmers</p>
+            <h3 className="font-semibold text-lg">{t.browseProducts}</h3>
+            <p className="text-gray-600 text-sm">{t.exploreProducts}</p>
           </div>
         </Link>
 
         <Link to="/orders" className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition flex items-center">
           <div className="text-4xl mr-4">📋</div>
           <div>
-            <h3 className="font-semibold text-lg">My Orders</h3>
-            <p className="text-gray-600 text-sm">Track and manage your orders</p>
+            <h3 className="font-semibold text-lg">{t.myOrders}</h3>
+            <p className="text-gray-600 text-sm">{t.trackOrders}</p>
           </div>
         </Link>
 
         <Link to="/profile" className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition flex items-center">
           <div className="text-4xl mr-4">👤</div>
           <div>
-            <h3 className="font-semibold text-lg">My Profile</h3>
-            <p className="text-gray-600 text-sm">Update your details and preferences</p>
+            <h3 className="font-semibold text-lg">{t.myProfile}</h3>
+            <p className="text-gray-600 text-sm">{t.updateDetails}</p>
           </div>
         </Link>
       </div>
@@ -156,9 +192,9 @@ const Dashboard: React.FC = () => {
       {/* Recent Orders */}
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Recent Orders</h2>
+          <h2 className="text-xl font-semibold">{t.recentOrders}</h2>
           <Link to="/orders" className="text-green-600 hover:text-green-700">
-            View All →
+            {t.viewAll} →
           </Link>
         </div>
 
@@ -167,32 +203,29 @@ const Dashboard: React.FC = () => {
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 py-2 text-left">Order #</th>
-                  <th className="px-4 py-2 text-left">Date</th>
-                  <th className="px-4 py-2 text-left">Type</th>
-                  <th className="px-4 py-2 text-left">Amount</th>
-                  <th className="px-4 py-2 text-left">Status</th>
-                  <th className="px-4 py-2 text-left">Action</th>
+                  <th className="px-4 py-2 text-left">{t.orderNo}</th>
+                  <th className="px-4 py-2 text-left">{t.date}</th>
+                  <th className="px-4 py-2 text-left">{t.type}</th>
+                  <th className="px-4 py-2 text-left">{t.amount}</th>
+                  <th className="px-4 py-2 text-left">{t.status}</th>
+                  <th className="px-4 py-2 text-left">{t.action}</th>
                 </tr>
               </thead>
               <tbody>
                 {recentOrders.map((order) => (
                   <tr key={order.id} className="border-t hover:bg-gray-50">
                     <td className="px-4 py-3 font-mono">{order.order_number}</td>
-                    <td className="px-4 py-3">{new Date(order.created_at).toLocaleDateString()}</td>
+                    <td className="px-4 py-3">{new Date(order.created_at).toLocaleDateString(isTamil ? 'ta-IN' : 'en-IN')}</td>
                     <td className="px-4 py-3">{order.order_type}</td>
                     <td className="px-4 py-3">₹{order.total_amount}</td>
                     <td className="px-4 py-3">
                       <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(order.status)}`}>
-                        {order.status}
+                        {getStatusText(order.status)}
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <Link 
-                        to={`/track-order/${order.id}`}
-                        className="text-green-600 hover:text-green-700"
-                      >
-                        Track
+                      <Link to={`/track-order/${order.id}`} className="text-green-600 hover:text-green-700">
+                        {t.track}
                       </Link>
                     </td>
                   </tr>
@@ -202,9 +235,9 @@ const Dashboard: React.FC = () => {
           </div>
         ) : (
           <div className="text-center py-8 text-gray-500">
-            <p>No orders yet</p>
+            <p>{t.noOrders}</p>
             <Link to="/products" className="text-green-600 hover:text-green-700 mt-2 inline-block">
-              Start Shopping →
+              {t.startShopping} →
             </Link>
           </div>
         )}
@@ -213,4 +246,4 @@ const Dashboard: React.FC = () => {
   );
 };
 
-export default Dashboard;
+export default CustomerDashboard;
