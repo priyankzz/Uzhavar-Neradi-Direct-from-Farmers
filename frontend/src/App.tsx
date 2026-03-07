@@ -19,6 +19,7 @@ import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import OTPVerification from './components/auth/OTPVerification';
 
+
 // Customer Pages
 import CustomerDashboard from './components/customer/Dashboard';
 import ProductBrowse from './components/customer/ProductBrowse';
@@ -48,6 +49,13 @@ import Announcements from './components/admin/Announcements';
 import AuditLogs from './components/admin/AuditLogs';
 import DisputeManagement from './components/admin/DisputeManagement';
 import MiddlemanMonitor from './components/admin/MiddlemanMonitor';
+import About from './components/common/About';
+import Contact from './components/common/Contact';
+import FAQ from './components/common/FAQ';
+import ShippingInfo from './components/common/ShippingInfo';
+import ReturnsPolicy from './components/common/ReturnsPolicy';
+import TermsAndConditions from './components/common/TermsAndConditions';
+import PrivacyPolicy from './components/common/PrivacyPolicy';
 
 function App() {
   const { loading } = useAuth();
@@ -178,6 +186,14 @@ function App() {
               <MiddlemanMonitor />
             </ProtectedRoute>
           } />
+
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/shipping" element={<ShippingInfo />} />
+          <Route path="/returns" element={<ReturnsPolicy />} />
+          <Route path="/terms" element={<TermsAndConditions />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
 
           {/* 404 */}
           <Route path="*" element={<Navigate to="/" replace />} />
