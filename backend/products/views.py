@@ -84,20 +84,30 @@ class ProductDetailView(generics.RetrieveAPIView):
     permission_classes = [permissions.AllowAny]
 
 class ProductCreateView(generics.CreateAPIView):
-    """Create new product (Farmer only)"""
+    """Create new product (Farmer only) - Auto-active"""
     serializer_class = ProductSerializer
     permission_classes = [IsFarmer]
     
     def perform_create(self, serializer):
-        serializer.save(farmer=self.request.user)
+        print("🔥 Creating new product with is_active=True")
+        # Force is_active to True for all new products
+        product = serializer.save(farmer=self.request.user, is_active=True)
+        print(f"✅ Product created: ID={product.id}, Name={product.name_en}, Active={product.is_active}")
+        return product
 
 class ProductUpdateView(generics.UpdateAPIView):
-    """Update product (Farmer only)"""
+    """Update product (Farmer only) - Preserves active status"""
     serializer_class = ProductSerializer
     permission_classes = [IsFarmer]
     
     def get_queryset(self):
         return Product.objects.filter(farmer=self.request.user)
+    
+    def perform_update(self, serializer):
+        print(f"🔄 Updating product ID: {self.get_object().id}")
+        # Simply save - preserves all existing values including is_active
+        product = serializer.save()
+        print(f"✅ Product updated: {product.name_en}, Active: {product.is_active}")
 
 class ProductDeleteView(generics.DestroyAPIView):
     """Delete product (Farmer only)"""
@@ -105,6 +115,11 @@ class ProductDeleteView(generics.DestroyAPIView):
     
     def get_queryset(self):
         return Product.objects.filter(farmer=self.request.user)
+    
+    def perform_destroy(self, instance):
+        print(f"🗑️ Deleting product: {instance.name_en} (ID: {instance.id})")
+        instance.delete()
+        print("✅ Product deleted successfully")
 
 class FarmerProductsView(generics.ListAPIView):
     """Get products for a specific farmer"""
@@ -113,6 +128,7 @@ class FarmerProductsView(generics.ListAPIView):
     
     def get_queryset(self):
         farmer_id = self.kwargs['farmer_id']
+        print(f"📋 Fetching products for farmer ID: {farmer_id}")
         return Product.objects.filter(farmer_id=farmer_id, is_active=True)
 
 class ProductReviewListView(generics.ListCreateAPIView):
@@ -130,4 +146,5 @@ class ProductReviewListView(generics.ListCreateAPIView):
     
     def perform_create(self, serializer):
         product = Product.objects.get(id=self.kwargs['product_id'])
+        print(f"⭐ New review for product: {product.name_en}")
         serializer.save(customer=self.request.user, product=product)
