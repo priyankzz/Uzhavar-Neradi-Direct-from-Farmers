@@ -1,5 +1,5 @@
 """
-Admin Panel URLs.
+Admin Panel URLs - COMPLETE VERSION
 Copy to: backend/admin_panel/urls.py
 """
 
@@ -37,6 +37,7 @@ urlpatterns = [
     path('disputes/', views.DisputeListView.as_view(), name='dispute-list'),
     path('disputes/<int:dispute_id>/', views.DisputeDetailView.as_view(), name='dispute-detail'),
     path('disputes/<int:dispute_id>/resolve/', views.ResolveDisputeView.as_view(), name='resolve-dispute'),
+    path('disputes/<int:dispute_id>/messages/', views.DisputeMessageView.as_view(), name='dispute-messages'),
     
     # Reports & Analytics
     path('reports/users/', views.UserReportView.as_view(), name='user-report'),
@@ -48,4 +49,12 @@ urlpatterns = [
     path('categories/', views.CategoryManagementView.as_view(), name='category-management'),
     path('categories/<int:category_id>/', views.CategoryDetailView.as_view(), name='category-detail'),
     path('festivals/', views.FestivalManagementView.as_view(), name='festival-management'),
+    path('festivals/<int:festival_id>/', views.FestivalDetailView.as_view(), name='festival-detail'),
+    
+    # Announcements
+    path('announcements/', views.AnnouncementView.as_view(), name='announcements'),
+    path('announcements/<int:announcement_id>/', views.AnnouncementDetailView.as_view(), name='announcement-detail'),
+    
+    # Audit Logs
+    path('audit-logs/', views.AuditLogView.as_view(), name='audit-logs'),
 ]

@@ -12,6 +12,10 @@ from django.utils import timezone
 from datetime import timedelta, datetime
 import json
 
+from products.models import Category
+from analytics.models import FestivalCalendar
+from .models import Announcement
+
 from .models import (
     PlatformSettings, PlatformLogo, MiddlemanFlag,
     Dispute, DisputeMessage, AuditLog, Announcement
@@ -1077,3 +1081,242 @@ class AuditLogView(APIView):
         
         serializer = AuditLogSerializer(logs[:limit], many=True)
         return Response(serializer.data)
+    
+class CategoryManagementView(APIView):
+    """Manage product categories"""
+    permission_classes = [IsAdmin]
+    
+    def get(self, request):
+        categories = Category.objects.all()
+        data = []
+        for category in categories:
+            data.append({
+                'id': category.id,
+                'name_en': category.name_en,
+                'name_ta': category.name_ta,
+                'description': category.description,
+                'icon': category.icon.url if category.icon else None,
+                'product_count': Product.objects.filter(category=category).count(),
+                'is_active': category.is_active
+            })
+        return Response(data)
+    
+    def post(self, request):
+        from products.serializers import CategorySerializer
+        serializer = CategorySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            AuditLog.objects.create(
+                user=request.user,
+                action_type='CREATE',
+                content_type='Category',
+                object_repr=serializer.data['name_en'],
+                changes=request.data
+            )
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
+
+class CategoryDetailView(APIView):
+    """Get/Update/Delete category"""
+    permission_classes = [IsAdmin]
+    
+    def get(self, request, category_id):
+        try:
+            category = Category.objects.get(id=category_id)
+            from products.serializers import CategorySerializer
+            serializer = CategorySerializer(category)
+            return Response(serializer.data)
+        except Category.DoesNotExist:
+            return Response({'error': 'Category not found'}, status=404)
+    
+    def put(self, request, category_id):
+        try:
+            category = Category.objects.get(id=category_id)
+            from products.serializers import CategorySerializer
+            serializer = CategorySerializer(category, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                AuditLog.objects.create(
+                    user=request.user,
+                    action_type='UPDATE',
+                    content_type='Category',
+                    object_id=category.id,
+                    object_repr=category.name_en,
+                    changes=request.data
+                )
+                return Response(serializer.data)
+            return Response(serializer.errors, status=400)
+        except Category.DoesNotExist:
+            return Response({'error': 'Category not found'}, status=404)
+    
+    def delete(self, request, category_id):
+        try:
+            category = Category.objects.get(id=category_id)
+            category.delete()
+            AuditLog.objects.create(
+                user=request.user,
+                action_type='DELETE',
+                content_type='Category',
+                object_repr=category.name_en
+            )
+            return Response({'message': 'Category deleted'}, status=204)
+        except Category.DoesNotExist:
+            return Response({'error': 'Category not found'}, status=404)
+
+class FestivalManagementView(APIView):
+    """Manage festivals"""
+    permission_classes = [IsAdmin]
+    
+    def get(self, request):
+        from analytics.models import FestivalCalendar
+        from analytics.serializers import FestivalCalendarSerializer
+        
+        year = request.query_params.get('year', timezone.now().year)
+        festivals = FestivalCalendar.objects.filter(date__year=year).order_by('date')
+        serializer = FestivalCalendarSerializer(festivals, many=True)
+        return Response(serializer.data)
+    
+    def post(self, request):
+        from analytics.models import FestivalCalendar
+        from analytics.serializers import FestivalCalendarSerializer
+        
+        serializer = FestivalCalendarSerializer(data=request.data)
+        if serializer.is_valid():
+            festival = serializer.save()
+            
+            # Add affected categories
+            if 'affected_categories' in request.data:
+                festival.affected_categories.set(request.data['affected_categories'])
+            
+            AuditLog.objects.create(
+                user=request.user,
+                action_type='CREATE',
+                content_type='FestivalCalendar',
+                object_repr=serializer.data['name'],
+                changes=request.data
+            )
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
+
+class FestivalDetailView(APIView):
+    """Get/Update/Delete festival"""
+    permission_classes = [IsAdmin]
+    
+    def get(self, request, festival_id):
+        try:
+            from analytics.models import FestivalCalendar
+            from analytics.serializers import FestivalCalendarSerializer
+            festival = FestivalCalendar.objects.get(id=festival_id)
+            serializer = FestivalCalendarSerializer(festival)
+            return Response(serializer.data)
+        except FestivalCalendar.DoesNotExist:
+            return Response({'error': 'Festival not found'}, status=404)
+    
+    def put(self, request, festival_id):
+        try:
+            from analytics.models import FestivalCalendar
+            from analytics.serializers import FestivalCalendarSerializer
+            festival = FestivalCalendar.objects.get(id=festival_id)
+            serializer = FestivalCalendarSerializer(festival, data=request.data, partial=True)
+            if serializer.is_valid():
+                festival = serializer.save()
+                if 'affected_categories' in request.data:
+                    festival.affected_categories.set(request.data['affected_categories'])
+                
+                AuditLog.objects.create(
+                    user=request.user,
+                    action_type='UPDATE',
+                    content_type='FestivalCalendar',
+                    object_id=festival.id,
+                    object_repr=festival.name,
+                    changes=request.data
+                )
+                return Response(serializer.data)
+            return Response(serializer.errors, status=400)
+        except FestivalCalendar.DoesNotExist:
+            return Response({'error': 'Festival not found'}, status=404)
+    
+    def delete(self, request, festival_id):
+        try:
+            from analytics.models import FestivalCalendar
+            festival = FestivalCalendar.objects.get(id=festival_id)
+            festival.delete()
+            AuditLog.objects.create(
+                user=request.user,
+                action_type='DELETE',
+                content_type='FestivalCalendar',
+                object_repr=festival.name
+            )
+            return Response({'message': 'Festival deleted'}, status=204)
+        except FestivalCalendar.DoesNotExist:
+            return Response({'error': 'Festival not found'}, status=404)
+
+class AnnouncementDetailView(APIView):
+    """Get/Update/Delete announcement"""
+    permission_classes = [IsAdmin]
+    
+    def get(self, request, announcement_id):
+        try:
+            announcement = Announcement.objects.get(id=announcement_id)
+            serializer = AnnouncementSerializer(announcement)
+            return Response(serializer.data)
+        except Announcement.DoesNotExist:
+            return Response({'error': 'Announcement not found'}, status=404)
+    
+    def put(self, request, announcement_id):
+        try:
+            announcement = Announcement.objects.get(id=announcement_id)
+            serializer = AnnouncementSerializer(announcement, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                AuditLog.objects.create(
+                    user=request.user,
+                    action_type='UPDATE',
+                    content_type='Announcement',
+                    object_id=announcement.id,
+                    object_repr=announcement.title,
+                    changes=request.data
+                )
+                return Response(serializer.data)
+            return Response(serializer.errors, status=400)
+        except Announcement.DoesNotExist:
+            return Response({'error': 'Announcement not found'}, status=404)
+    
+    def delete(self, request, announcement_id):
+        try:
+            announcement = Announcement.objects.get(id=announcement_id)
+            announcement.delete()
+            AuditLog.objects.create(
+                user=request.user,
+                action_type='DELETE',
+                content_type='Announcement',
+                object_repr=announcement.title
+            )
+            return Response({'message': 'Announcement deleted'}, status=204)
+        except Announcement.DoesNotExist:
+            return Response({'error': 'Announcement not found'}, status=404)
+
+class DisputeMessageView(APIView):
+    """Add message to dispute"""
+    permission_classes = [IsAdmin]
+    
+    def post(self, request, dispute_id):
+        try:
+            dispute = Dispute.objects.get(id=dispute_id)
+            message = request.data.get('message')
+            
+            if not message:
+                return Response({'error': 'Message required'}, status=400)
+            
+            dispute_message = DisputeMessage.objects.create(
+                dispute=dispute,
+                sender=request.user,
+                message=message,
+                is_staff_only=request.data.get('is_staff_only', False)
+            )
+            
+            serializer = DisputeMessageSerializer(dispute_message)
+            return Response(serializer.data, status=201)
+            
+        except Dispute.DoesNotExist:
+            return Response({'error': 'Dispute not found'}, status=404)

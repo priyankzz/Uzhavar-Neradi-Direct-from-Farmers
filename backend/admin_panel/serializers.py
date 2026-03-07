@@ -2,7 +2,9 @@
 Admin Panel Serializers.
 Copy to: backend/admin_panel/serializers.py
 """
-
+from products.models import Category
+from analytics.models import FestivalCalendar
+from .models import Announcement
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from .models import (
@@ -125,3 +127,42 @@ class AdminDashboardSerializer(serializers.Serializer):
     total_revenue_month = serializers.DecimalField(max_digits=12, decimal_places=2)
     user_growth = serializers.ListField(child=serializers.DictField())
     recent_activities = serializers.ListField(child=serializers.DictField())
+
+class CategoryAdminSerializer(serializers.ModelSerializer):
+    """Category serializer for admin"""
+    product_count = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Category
+        fields = ['id', 'name_en', 'name_ta', 'description', 'icon', 'is_active', 'product_count', 'created_at']
+    
+    def get_product_count(self, obj):
+        return obj.products.count()
+
+class FestivalAdminSerializer(serializers.ModelSerializer):
+    """Festival serializer for admin"""
+    affected_categories_details = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = FestivalCalendar
+        fields = '__all__'
+    
+    def get_affected_categories_details(self, obj):
+        return [{'id': cat.id, 'name': cat.name_en} for cat in obj.affected_categories.all()]
+
+class AnnouncementAdminSerializer(serializers.ModelSerializer):
+    """Announcement serializer for admin"""
+    created_by_name = serializers.ReadOnlyField(source='created_by.username')
+    
+    class Meta:
+        model = Announcement
+        fields = '__all__'
+        read_only_fields = ['created_at', 'updated_at']
+
+class AuditLogAdminSerializer(serializers.ModelSerializer):
+    """Audit log serializer for admin"""
+    user_name = serializers.ReadOnlyField(source='user.username')
+    
+    class Meta:
+        model = AuditLog
+        fields = '__all__'
