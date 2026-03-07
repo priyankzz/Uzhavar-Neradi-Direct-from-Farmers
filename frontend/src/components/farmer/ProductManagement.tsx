@@ -1,5 +1,5 @@
 /**
- * Product Management Component - Complete Fixed Version
+ * Product Management Component - Fixed Version
  * Copy to: frontend/src/components/farmer/ProductManagement.tsx
  */
 
@@ -36,10 +36,10 @@ interface Category {
 }
 
 const ProductManagement: React.FC = () => {
-  const { user } = useAuth();
+  const { user } = useAuth();  // SINGLE declaration at the top
   const { language } = useLanguage();
   const isTamil = language === 'ta';
-  
+
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -80,7 +80,7 @@ const ProductManagement: React.FC = () => {
     updateSuccess: isTamil ? 'பொருள் வெற்றிகரமாக புதுப்பிக்கப்பட்டது!' : 'Product updated successfully!',
     deleteConfirm: isTamil ? 'இந்த பொருளை நீக்க விரும்புகிறீர்களா?' : 'Are you sure you want to delete this product?',
     noProducts: isTamil ? 'இதுவரை பொருட்கள் இல்லை. "புதிய பொருள் சேர்க்க" என்பதைக் கிளிக் செய்யவும்.' : 'No products yet. Click "Add New Product" to get started.',
-    
+
     // Form fields
     nameEn: isTamil ? 'பெயர் (ஆங்கிலம்)' : 'Name (English)',
     nameTa: isTamil ? 'பெயர் (தமிழ்)' : 'Name (Tamil)',
@@ -95,7 +95,7 @@ const ProductManagement: React.FC = () => {
     harvestDate: isTamil ? 'அறுவடை தேதி' : 'Harvest Date',
     images: isTamil ? 'படங்கள்' : 'Images',
     selectImages: isTamil ? 'படங்களை தேர்ந்தெடுக்கவும்' : 'Select Images',
-    
+
     // Units
     kg: isTamil ? 'கிலோ' : 'Kilogram',
     gram: isTamil ? 'கிராம்' : 'Gram',
@@ -103,7 +103,7 @@ const ProductManagement: React.FC = () => {
     piece: isTamil ? 'துண்டு' : 'Piece',
     bag: isTamil ? 'பை' : 'Bag',
     litre: isTamil ? 'லிட்டர்' : 'Litre',
-    
+
     // Table headers
     product: isTamil ? 'பொருள்' : 'Product',
     categoryCol: isTamil ? 'வகை' : 'Category',
@@ -122,20 +122,36 @@ const ProductManagement: React.FC = () => {
 
   const fetchProducts = async () => {
     try {
-      // Use 'me' parameter - backend will handle it
+      console.log('1. Starting to fetch products...');
+      console.log('2. Token exists:', !!localStorage.getItem('token'));
+
       const response = await axios.get('http://localhost:8000/api/products/', {
         params: { farmer: 'me' },
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
-      
+
+      console.log('3. Full API Response:', response);
+      console.log('4. Response data:', response.data);
+
       // Handle both paginated and non-paginated responses
-      const productsData = response.data.results || response.data || [];
-      setProducts(Array.isArray(productsData) ? productsData : []);
+      const productsData = response.data.results || response.data;
+      console.log('5. Extracted products data:', productsData);
+      console.log('6. Is array?', Array.isArray(productsData));
+      console.log('7. Number of products:', productsData?.length || 0);
+
+      if (Array.isArray(productsData)) {
+        setProducts(productsData);
+        console.log('8. Products set to state:', productsData.length);
+      } else {
+        console.log('8. Products data is not an array, setting empty array');
+        setProducts([]);
+      }
     } catch (error) {
-      console.error('Failed to fetch products:', error);
+      console.error('9. Error fetching products:', error);
       setError(isTamil ? 'பொருட்களை ஏற்ற முடியவில்லை' : 'Failed to fetch products');
     } finally {
       setLoading(false);
+      console.log('10. Loading set to false');
     }
   };
 
@@ -161,7 +177,7 @@ const ProductManagement: React.FC = () => {
     if (e.target.files) {
       const files = Array.from(e.target.files);
       setImageFiles(files);
-      
+
       // Create preview URLs
       const previews = files.map(file => URL.createObjectURL(file));
       setImagePreviews(previews);
@@ -171,13 +187,13 @@ const ProductManagement: React.FC = () => {
   const removeImage = (index: number) => {
     const newFiles = [...imageFiles];
     const newPreviews = [...imagePreviews];
-    
+
     // Revoke the object URL to avoid memory leaks
     URL.revokeObjectURL(newPreviews[index]);
-    
+
     newFiles.splice(index, 1);
     newPreviews.splice(index, 1);
-    
+
     setImageFiles(newFiles);
     setImagePreviews(newPreviews);
   };
@@ -190,7 +206,7 @@ const ProductManagement: React.FC = () => {
 
     try {
       const formDataToSend = new FormData();
-      
+
       // Append form fields
       Object.keys(formData).forEach(key => {
         const value = formData[key as keyof typeof formData];
@@ -233,7 +249,7 @@ const ProductManagement: React.FC = () => {
         await fetchProducts(); // Refresh the list
         setSuccess(editingProduct ? t.updateSuccess : t.addSuccess);
         resetForm();
-        
+
         // Clear success message after 3 seconds
         setTimeout(() => setSuccess(''), 3000);
       }
@@ -260,6 +276,7 @@ const ProductManagement: React.FC = () => {
       category: product.category,
       preorder_available: product.preorder_available,
       preorder_cutoff_hours: product.preorder_cutoff_hours,
+      is_active: product.is_active ,
       harvest_date: product.harvest_date
     });
     setImagePreviews(product.images || []);
@@ -270,7 +287,7 @@ const ProductManagement: React.FC = () => {
 
   const handleDelete = async (productId: number) => {
     if (!window.confirm(t.deleteConfirm)) return;
-    
+
     try {
       await axios.delete(`http://localhost:8000/api/products/${productId}/delete/`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
@@ -315,10 +332,10 @@ const ProductManagement: React.FC = () => {
       preorder_cutoff_hours: 24,
       harvest_date: null
     });
-    
+
     // Clean up preview URLs
     imagePreviews.forEach(url => URL.revokeObjectURL(url));
-    
+
     setImageFiles([]);
     setImagePreviews([]);
     setEditingProduct(null);
@@ -367,7 +384,7 @@ const ProductManagement: React.FC = () => {
           {success}
         </div>
       )}
-      
+
       {error && (
         <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
           {error}
@@ -380,7 +397,7 @@ const ProductManagement: React.FC = () => {
           <h2 className="text-xl font-semibold mb-4">
             {editingProduct ? t.edit : t.addNew}
           </h2>
-          
+
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* English Name */}
@@ -583,14 +600,14 @@ const ProductManagement: React.FC = () => {
                 <p className="text-sm text-gray-500 mt-1">
                   {isTamil ? 'பல படங்களை தேர்ந்தெடுக்கலாம்' : 'You can select multiple images'}
                 </p>
-                
+
                 {/* Image Previews */}
                 {imagePreviews.length > 0 && (
                   <div className="mt-4 grid grid-cols-4 gap-2">
                     {imagePreviews.map((preview, index) => (
                       <div key={index} className="relative group">
-                        <img 
-                          src={preview} 
+                        <img
+                          src={preview}
                           alt={`Preview ${index + 1}`}
                           className="w-full h-24 object-cover rounded-lg border"
                         />
@@ -614,7 +631,7 @@ const ProductManagement: React.FC = () => {
                 disabled={submitting}
                 className="btn-primary px-8"
               >
-                {submitting 
+                {submitting
                   ? (editingProduct ? t.updating : t.saving)
                   : (editingProduct ? t.edit : t.save)
                 }
@@ -650,8 +667,8 @@ const ProductManagement: React.FC = () => {
                 <td className="px-4 py-3">
                   <div className="flex items-center">
                     {product.images && product.images[0] && (
-                      <img 
-                        src={product.images[0]} 
+                      <img
+                        src={product.images[0]}
                         alt={getProductName(product)}
                         className="w-10 h-10 object-cover rounded mr-3"
                       />
@@ -672,11 +689,10 @@ const ProductManagement: React.FC = () => {
                 <td className="px-4 py-3">
                   <button
                     onClick={() => handleToggleActive(product)}
-                    className={`px-2 py-1 rounded-full text-xs ${
-                      product.is_active 
-                        ? 'bg-green-100 text-green-800' 
+                    className={`px-2 py-1 rounded-full text-xs ${product.is_active
+                        ? 'bg-green-100 text-green-800'
                         : 'bg-gray-100 text-gray-800'
-                    }`}
+                      }`}
                   >
                     {product.is_active ? t.active : t.inactive}
                   </button>
