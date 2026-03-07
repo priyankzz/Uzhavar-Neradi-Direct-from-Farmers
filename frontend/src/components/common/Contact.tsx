@@ -125,7 +125,7 @@ const Contact: React.FC = () => {
                     {isTamil ? 'முகவரி' : 'Address'}
                   </p>
                   <p className="text-gray-600">
-                    {isTamil ? 'சென்னை, தமிழ்நாடு' : 'Chennai, Tamil Nadu'}
+                    {isTamil ? 'விழுப்புரம், தமிழ்நாடு' : 'Villupuram, Tamil Nadu'}
                   </p>
                 </div>
               </div>
