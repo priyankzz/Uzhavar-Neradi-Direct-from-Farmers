@@ -1,11 +1,12 @@
 /**
- * Product Management Component
+ * Product Management Component - Complete Fixed Version
  * Copy to: frontend/src/components/farmer/ProductManagement.tsx
  */
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useLanguage } from '../../hooks/useLanguage';
+import { useAuth } from '../../hooks/useAuth';
 import LoadingSpinner from '../common/LoadingSpinner';
 
 interface Product {
@@ -35,6 +36,10 @@ interface Category {
 }
 
 const ProductManagement: React.FC = () => {
+  const { user } = useAuth();
+  const { language } = useLanguage();
+  const isTamil = language === 'ta';
+  
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,10 +61,59 @@ const ProductManagement: React.FC = () => {
     harvest_date: null
   });
   const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
-  const { language, t } = useLanguage();
+  // Tamil translations
+  const t = {
+    pageTitle: isTamil ? 'பொருட்கள் மேலாண்மை' : 'Product Management',
+    addNew: isTamil ? 'புதிய பொருள் சேர்க்க' : 'Add New Product',
+    cancel: isTamil ? 'ரத்து செய்' : 'Cancel',
+    edit: isTamil ? 'திருத்து' : 'Edit',
+    delete: isTamil ? 'நீக்கு' : 'Delete',
+    save: isTamil ? 'சேமி' : 'Save',
+    updating: isTamil ? 'புதுப்பிக்கிறது...' : 'Updating...',
+    saving: isTamil ? 'சேமிக்கிறது...' : 'Saving...',
+    addSuccess: isTamil ? 'பொருள் வெற்றிகரமாக சேர்க்கப்பட்டது!' : 'Product added successfully!',
+    updateSuccess: isTamil ? 'பொருள் வெற்றிகரமாக புதுப்பிக்கப்பட்டது!' : 'Product updated successfully!',
+    deleteConfirm: isTamil ? 'இந்த பொருளை நீக்க விரும்புகிறீர்களா?' : 'Are you sure you want to delete this product?',
+    noProducts: isTamil ? 'இதுவரை பொருட்கள் இல்லை. "புதிய பொருள் சேர்க்க" என்பதைக் கிளிக் செய்யவும்.' : 'No products yet. Click "Add New Product" to get started.',
+    
+    // Form fields
+    nameEn: isTamil ? 'பெயர் (ஆங்கிலம்)' : 'Name (English)',
+    nameTa: isTamil ? 'பெயர் (தமிழ்)' : 'Name (Tamil)',
+    category: isTamil ? 'வகை' : 'Category',
+    price: isTamil ? 'விலை (₹)' : 'Price (₹)',
+    unit: isTamil ? 'அலகு' : 'Unit',
+    availableQty: isTamil ? 'கிடைக்கும் அளவு' : 'Available Quantity',
+    minOrder: isTamil ? 'குறைந்தபட்ச ஆர்டர்' : 'Min Order Quantity',
+    description: isTamil ? 'விளக்கம்' : 'Description',
+    organic: isTamil ? 'இயற்கை பொருள்' : 'Organic Product',
+    preorder: isTamil ? 'முன்-ஆர்டரை அனுமதி' : 'Allow Preorders',
+    harvestDate: isTamil ? 'அறுவடை தேதி' : 'Harvest Date',
+    images: isTamil ? 'படங்கள்' : 'Images',
+    selectImages: isTamil ? 'படங்களை தேர்ந்தெடுக்கவும்' : 'Select Images',
+    
+    // Units
+    kg: isTamil ? 'கிலோ' : 'Kilogram',
+    gram: isTamil ? 'கிராம்' : 'Gram',
+    dozen: isTamil ? 'டஜன்' : 'Dozen',
+    piece: isTamil ? 'துண்டு' : 'Piece',
+    bag: isTamil ? 'பை' : 'Bag',
+    litre: isTamil ? 'லிட்டர்' : 'Litre',
+    
+    // Table headers
+    product: isTamil ? 'பொருள்' : 'Product',
+    categoryCol: isTamil ? 'வகை' : 'Category',
+    priceCol: isTamil ? 'விலை' : 'Price',
+    stock: isTamil ? 'இருப்பு' : 'Stock',
+    status: isTamil ? 'நிலை' : 'Status',
+    actions: isTamil ? 'செயல்கள்' : 'Actions',
+    active: isTamil ? 'செயலில்' : 'Active',
+    inactive: isTamil ? 'செயலற்று' : 'Inactive'
+  };
 
   useEffect(() => {
     fetchProducts();
@@ -68,13 +122,18 @@ const ProductManagement: React.FC = () => {
 
   const fetchProducts = async () => {
     try {
+      // Use 'me' parameter - backend will handle it
       const response = await axios.get('http://localhost:8000/api/products/', {
         params: { farmer: 'me' },
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
-      setProducts(response.data.results || response.data);
+      
+      // Handle both paginated and non-paginated responses
+      const productsData = response.data.results || response.data || [];
+      setProducts(Array.isArray(productsData) ? productsData : []);
     } catch (error) {
       console.error('Failed to fetch products:', error);
+      setError(isTamil ? 'பொருட்களை ஏற்ற முடியவில்லை' : 'Failed to fetch products');
     } finally {
       setLoading(false);
     }
@@ -83,7 +142,8 @@ const ProductManagement: React.FC = () => {
   const fetchCategories = async () => {
     try {
       const response = await axios.get('http://localhost:8000/api/products/categories/');
-      setCategories(response.data);
+      const categoriesData = response.data.results || response.data || [];
+      setCategories(Array.isArray(categoriesData) ? categoriesData : []);
     } catch (error) {
       console.error('Failed to fetch categories:', error);
     }
@@ -99,14 +159,34 @@ const ProductManagement: React.FC = () => {
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setImageFiles(Array.from(e.target.files));
+      const files = Array.from(e.target.files);
+      setImageFiles(files);
+      
+      // Create preview URLs
+      const previews = files.map(file => URL.createObjectURL(file));
+      setImagePreviews(previews);
     }
+  };
+
+  const removeImage = (index: number) => {
+    const newFiles = [...imageFiles];
+    const newPreviews = [...imagePreviews];
+    
+    // Revoke the object URL to avoid memory leaks
+    URL.revokeObjectURL(newPreviews[index]);
+    
+    newFiles.splice(index, 1);
+    newPreviews.splice(index, 1);
+    
+    setImageFiles(newFiles);
+    setImagePreviews(newPreviews);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     setError('');
+    setSuccess('');
 
     try {
       const formDataToSend = new FormData();
@@ -114,7 +194,7 @@ const ProductManagement: React.FC = () => {
       // Append form fields
       Object.keys(formData).forEach(key => {
         const value = formData[key as keyof typeof formData];
-        if (value !== undefined && value !== null) {
+        if (value !== undefined && value !== null && value !== '') {
           formDataToSend.append(key, String(value));
         }
       });
@@ -150,11 +230,16 @@ const ProductManagement: React.FC = () => {
       }
 
       if (response.data) {
-        fetchProducts();
+        await fetchProducts(); // Refresh the list
+        setSuccess(editingProduct ? t.updateSuccess : t.addSuccess);
         resetForm();
+        
+        // Clear success message after 3 seconds
+        setTimeout(() => setSuccess(''), 3000);
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save product');
+      console.error('Failed to save product:', err);
+      setError(err.response?.data?.message || (isTamil ? 'பொருளை சேமிக்க முடியவில்லை' : 'Failed to save product'));
     } finally {
       setSubmitting(false);
     }
@@ -162,20 +247,40 @@ const ProductManagement: React.FC = () => {
 
   const handleEdit = (product: Product) => {
     setEditingProduct(product);
-    setFormData(product);
+    setFormData({
+      name_en: product.name_en,
+      name_ta: product.name_ta,
+      description_en: product.description_en,
+      description_ta: product.description_ta,
+      price_per_unit: product.price_per_unit,
+      unit: product.unit,
+      available_quantity: product.available_quantity,
+      min_order_quantity: product.min_order_quantity,
+      is_organic: product.is_organic,
+      category: product.category,
+      preorder_available: product.preorder_available,
+      preorder_cutoff_hours: product.preorder_cutoff_hours,
+      harvest_date: product.harvest_date
+    });
+    setImagePreviews(product.images || []);
+    setImageFiles([]);
     setShowForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDelete = async (productId: number) => {
-    if (window.confirm('Are you sure you want to delete this product?')) {
-      try {
-        await axios.delete(`http://localhost:8000/api/products/${productId}/delete/`, {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-        });
-        fetchProducts();
-      } catch (error) {
-        console.error('Failed to delete product:', error);
-      }
+    if (!window.confirm(t.deleteConfirm)) return;
+    
+    try {
+      await axios.delete(`http://localhost:8000/api/products/${productId}/delete/`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      await fetchProducts();
+      setSuccess(isTamil ? 'பொருள் நீக்கப்பட்டது' : 'Product deleted');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (error) {
+      console.error('Failed to delete product:', error);
+      setError(isTamil ? 'பொருளை நீக்க முடியவில்லை' : 'Failed to delete product');
     }
   };
 
@@ -188,7 +293,7 @@ const ProductManagement: React.FC = () => {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         }
       );
-      fetchProducts();
+      await fetchProducts();
     } catch (error) {
       console.error('Failed to toggle product status:', error);
     }
@@ -210,14 +315,31 @@ const ProductManagement: React.FC = () => {
       preorder_cutoff_hours: 24,
       harvest_date: null
     });
+    
+    // Clean up preview URLs
+    imagePreviews.forEach(url => URL.revokeObjectURL(url));
+    
     setImageFiles([]);
+    setImagePreviews([]);
     setEditingProduct(null);
     setShowForm(false);
     setError('');
   };
 
   const getProductName = (product: Product) => {
-    return language === 'ta' ? product.name_ta : product.name_en;
+    return isTamil && product.name_ta ? product.name_ta : product.name_en;
+  };
+
+  const getUnitText = (unit: string) => {
+    const units: { [key: string]: string } = {
+      'KG': t.kg,
+      'GRAM': t.gram,
+      'DOZEN': t.dozen,
+      'PIECE': t.piece,
+      'BAG': t.bag,
+      'LITRE': t.litre
+    };
+    return units[unit] || unit;
   };
 
   if (loading) {
@@ -227,33 +349,43 @@ const ProductManagement: React.FC = () => {
   return (
     <div className="max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Product Management</h1>
+        <h1 className="text-2xl font-bold">{t.pageTitle}</h1>
         <button
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => {
+            resetForm();
+            setShowForm(!showForm);
+          }}
           className="btn-primary"
         >
-          {showForm ? 'Cancel' : 'Add New Product'}
+          {showForm ? t.cancel : t.addNew}
         </button>
       </div>
+
+      {/* Success/Error Messages */}
+      {success && (
+        <div className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
+          {success}
+        </div>
+      )}
+      
+      {error && (
+        <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+          {error}
+        </div>
+      )}
 
       {/* Product Form */}
       {showForm && (
         <div className="bg-white rounded-lg shadow p-6 mb-8">
           <h2 className="text-xl font-semibold mb-4">
-            {editingProduct ? 'Edit Product' : 'Add New Product'}
+            {editingProduct ? t.edit : t.addNew}
           </h2>
           
-          {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-              {error}
-            </div>
-          )}
-
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* English Name */}
               <div>
-                <label className="block text-gray-700 mb-2">Product Name (English)</label>
+                <label className="block text-gray-700 mb-2">{t.nameEn} *</label>
                 <input
                   type="text"
                   name="name_en"
@@ -266,7 +398,7 @@ const ProductManagement: React.FC = () => {
 
               {/* Tamil Name */}
               <div>
-                <label className="block text-gray-700 mb-2">Product Name (Tamil)</label>
+                <label className="block text-gray-700 mb-2">{t.nameTa} *</label>
                 <input
                   type="text"
                   name="name_ta"
@@ -279,18 +411,18 @@ const ProductManagement: React.FC = () => {
 
               {/* Category */}
               <div>
-                <label className="block text-gray-700 mb-2">Category</label>
+                <label className="block text-gray-700 mb-2">{t.category} *</label>
                 <select
                   name="category"
-                  value={formData.category}
+                  value={formData.category || ''}
                   onChange={handleInputChange}
                   className="input-field"
                   required
                 >
-                  <option value="">Select Category</option>
+                  <option value="">{isTamil ? 'வகையை தேர்ந்தெடுக்கவும்' : 'Select Category'}</option>
                   {categories.map(cat => (
                     <option key={cat.id} value={cat.id}>
-                      {language === 'ta' ? cat.name_ta : cat.name_en}
+                      {isTamil ? cat.name_ta : cat.name_en}
                     </option>
                   ))}
                 </select>
@@ -298,7 +430,7 @@ const ProductManagement: React.FC = () => {
 
               {/* Price */}
               <div>
-                <label className="block text-gray-700 mb-2">Price (₹)</label>
+                <label className="block text-gray-700 mb-2">{t.price} *</label>
                 <input
                   type="number"
                   name="price_per_unit"
@@ -313,7 +445,7 @@ const ProductManagement: React.FC = () => {
 
               {/* Unit */}
               <div>
-                <label className="block text-gray-700 mb-2">Unit</label>
+                <label className="block text-gray-700 mb-2">{t.unit} *</label>
                 <select
                   name="unit"
                   value={formData.unit}
@@ -321,18 +453,18 @@ const ProductManagement: React.FC = () => {
                   className="input-field"
                   required
                 >
-                  <option value="KG">Kilogram (KG)</option>
-                  <option value="GRAM">Gram</option>
-                  <option value="DOZEN">Dozen</option>
-                  <option value="PIECE">Piece</option>
-                  <option value="BAG">Bag</option>
-                  <option value="LITRE">Litre</option>
+                  <option value="KG">{t.kg}</option>
+                  <option value="GRAM">{t.gram}</option>
+                  <option value="DOZEN">{t.dozen}</option>
+                  <option value="PIECE">{t.piece}</option>
+                  <option value="BAG">{t.bag}</option>
+                  <option value="LITRE">{t.litre}</option>
                 </select>
               </div>
 
               {/* Available Quantity */}
               <div>
-                <label className="block text-gray-700 mb-2">Available Quantity</label>
+                <label className="block text-gray-700 mb-2">{t.availableQty} *</label>
                 <input
                   type="number"
                   name="available_quantity"
@@ -347,7 +479,7 @@ const ProductManagement: React.FC = () => {
 
               {/* Min Order Quantity */}
               <div>
-                <label className="block text-gray-700 mb-2">Minimum Order Quantity</label>
+                <label className="block text-gray-700 mb-2">{t.minOrder} *</label>
                 <input
                   type="number"
                   name="min_order_quantity"
@@ -362,7 +494,7 @@ const ProductManagement: React.FC = () => {
 
               {/* Harvest Date */}
               <div>
-                <label className="block text-gray-700 mb-2">Harvest Date (Optional)</label>
+                <label className="block text-gray-700 mb-2">{t.harvestDate}</label>
                 <input
                   type="date"
                   name="harvest_date"
@@ -374,7 +506,7 @@ const ProductManagement: React.FC = () => {
 
               {/* English Description */}
               <div className="md:col-span-2">
-                <label className="block text-gray-700 mb-2">Description (English)</label>
+                <label className="block text-gray-700 mb-2">{t.description} (English)</label>
                 <textarea
                   name="description_en"
                   value={formData.description_en}
@@ -386,7 +518,7 @@ const ProductManagement: React.FC = () => {
 
               {/* Tamil Description */}
               <div className="md:col-span-2">
-                <label className="block text-gray-700 mb-2">Description (Tamil)</label>
+                <label className="block text-gray-700 mb-2">{t.description} (Tamil)</label>
                 <textarea
                   name="description_ta"
                   value={formData.description_ta}
@@ -407,7 +539,7 @@ const ProductManagement: React.FC = () => {
                       onChange={handleInputChange}
                       className="mr-2"
                     />
-                    Organic Product
+                    {t.organic}
                   </label>
 
                   <label className="flex items-center">
@@ -418,7 +550,7 @@ const ProductManagement: React.FC = () => {
                       onChange={handleInputChange}
                       className="mr-2"
                     />
-                    Allow Preorders
+                    {t.preorder}
                   </label>
                 </div>
               </div>
@@ -440,7 +572,7 @@ const ProductManagement: React.FC = () => {
 
               {/* Images */}
               <div className="md:col-span-2">
-                <label className="block text-gray-700 mb-2">Product Images</label>
+                <label className="block text-gray-700 mb-2">{t.images}</label>
                 <input
                   type="file"
                   accept="image/*"
@@ -449,8 +581,30 @@ const ProductManagement: React.FC = () => {
                   className="input-field"
                 />
                 <p className="text-sm text-gray-500 mt-1">
-                  You can select multiple images
+                  {isTamil ? 'பல படங்களை தேர்ந்தெடுக்கலாம்' : 'You can select multiple images'}
                 </p>
+                
+                {/* Image Previews */}
+                {imagePreviews.length > 0 && (
+                  <div className="mt-4 grid grid-cols-4 gap-2">
+                    {imagePreviews.map((preview, index) => (
+                      <div key={index} className="relative group">
+                        <img 
+                          src={preview} 
+                          alt={`Preview ${index + 1}`}
+                          className="w-full h-24 object-cover rounded-lg border"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(index)}
+                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -460,14 +614,17 @@ const ProductManagement: React.FC = () => {
                 disabled={submitting}
                 className="btn-primary px-8"
               >
-                {submitting ? 'Saving...' : (editingProduct ? 'Update Product' : 'Add Product')}
+                {submitting 
+                  ? (editingProduct ? t.updating : t.saving)
+                  : (editingProduct ? t.edit : t.save)
+                }
               </button>
               <button
                 type="button"
                 onClick={resetForm}
                 className="btn-secondary px-8"
               >
-                Cancel
+                {t.cancel}
               </button>
             </div>
           </form>
@@ -479,12 +636,12 @@ const ProductManagement: React.FC = () => {
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-3 text-left">Product</th>
-              <th className="px-4 py-3 text-left">Category</th>
-              <th className="px-4 py-3 text-left">Price</th>
-              <th className="px-4 py-3 text-left">Stock</th>
-              <th className="px-4 py-3 text-left">Status</th>
-              <th className="px-4 py-3 text-left">Actions</th>
+              <th className="px-4 py-3 text-left">{t.product}</th>
+              <th className="px-4 py-3 text-left">{t.categoryCol}</th>
+              <th className="px-4 py-3 text-left">{t.priceCol}</th>
+              <th className="px-4 py-3 text-left">{t.stock}</th>
+              <th className="px-4 py-3 text-left">{t.status}</th>
+              <th className="px-4 py-3 text-left">{t.actions}</th>
             </tr>
           </thead>
           <tbody>
@@ -506,10 +663,10 @@ const ProductManagement: React.FC = () => {
                   </div>
                 </td>
                 <td className="px-4 py-3">{product.category_name}</td>
-                <td className="px-4 py-3">₹{product.price_per_unit}/{product.unit}</td>
+                <td className="px-4 py-3">₹{product.price_per_unit}/{getUnitText(product.unit)}</td>
                 <td className="px-4 py-3">
                   <span className={product.available_quantity > 10 ? 'text-green-600' : 'text-orange-600'}>
-                    {product.available_quantity} {product.unit}
+                    {product.available_quantity} {getUnitText(product.unit)}
                   </span>
                 </td>
                 <td className="px-4 py-3">
@@ -521,22 +678,22 @@ const ProductManagement: React.FC = () => {
                         : 'bg-gray-100 text-gray-800'
                     }`}
                   >
-                    {product.is_active ? 'Active' : 'Inactive'}
+                    {product.is_active ? t.active : t.inactive}
                   </button>
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleEdit(product)}
-                      className="text-blue-600 hover:text-blue-800"
+                      className="text-blue-600 hover:text-blue-800 text-sm"
                     >
-                      Edit
+                      {t.edit}
                     </button>
                     <button
                       onClick={() => handleDelete(product.id)}
-                      className="text-red-600 hover:text-red-800"
+                      className="text-red-600 hover:text-red-800 text-sm"
                     >
-                      Delete
+                      {t.delete}
                     </button>
                   </div>
                 </td>
@@ -545,7 +702,7 @@ const ProductManagement: React.FC = () => {
             {products.length === 0 && (
               <tr>
                 <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
-                  No products yet. Click "Add New Product" to get started.
+                  {t.noProducts}
                 </td>
               </tr>
             )}
