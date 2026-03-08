@@ -119,4 +119,6 @@ export interface CartItem {
   quantity: number;
   max_quantity: number;
   image?: string;
+  farmer_id: number;
+  farmer_name?: string;
 }

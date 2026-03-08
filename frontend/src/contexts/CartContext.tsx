@@ -14,6 +14,8 @@ interface CartItem {
   quantity: number;
   max_quantity: number;
   image?: string;
+  farmer_id: number;      // Add this
+  farmer_name?: string;   // Add this
 }
 
 interface CartContextType {
@@ -66,15 +68,17 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             : item
         );
       } else {
-        // Add new item
+        // Add new item with farmer info
         const newItem: CartItem = {
-          id: Date.now(), // temporary id
+          id: Date.now(),
           product_id: product.id,
           name: product.name_en || product.name,
           price: product.price_per_unit || product.price,
           quantity: 1,
           max_quantity: product.available_quantity || 999,
-          image: product.images?.[0]
+          image: product.images?.[0],
+          farmer_id: product.farmer_id || product.farmer || 0, // Add farmer_id
+          farmer_name: product.farmer_name || product.farmer_farm // Add farmer_name
         };
         return [...prevItems, newItem];
       }

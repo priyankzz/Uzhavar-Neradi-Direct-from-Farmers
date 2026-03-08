@@ -1,25 +1,94 @@
 /**
- * Cart Component
+ * Cart Component with Dynamic Delivery Fee
  * Copy to: frontend/src/components/customer/Cart.tsx
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../../hooks/useCart';
 import { useLanguage } from '../../hooks/useLanguage';
 import { useAuth } from '../../hooks/useAuth';
+import axios from 'axios';
+
+interface ProductDetails {
+  delivery_fee: number;
+  free_delivery_min_amount: number | null;
+  farmer_id: number;
+}
 
 const Cart: React.FC = () => {
   const { items, removeFromCart, updateQuantity, getCartTotal, getCartCount } = useCart();
   const { t } = useLanguage();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+  
+  const [deliveryFee, setDeliveryFee] = useState<number>(0);
+  const [loading, setLoading] = useState(false);
+  const [freeDeliveryMin, setFreeDeliveryMin] = useState<number | null>(null);
+
+  const formatPrice = (price: number) => {
+    return Number(price).toFixed(2);
+  };
+
+  // Fetch delivery fee based on products in cart
+  // Fetch delivery fee based on products in cart
+useEffect(() => {
+  const fetchDeliveryFees = async () => {
+    if (items.length === 0) return;
+    
+    setLoading(true);
+    try {
+      // Filter out items without farmer_id and get unique farmer IDs
+      const validItems = items.filter(item => item.farmer_id);
+      if (validItems.length === 0) {
+        setDeliveryFee(50); // Default fallback
+        setLoading(false);
+        return;
+      }
+      
+      const farmerIds = Array.from(new Set(validItems.map(item => item.farmer_id)));
+      
+      // For now, use the first farmer's delivery fee (simplified)
+      // In a real app, you might want to handle multiple farmers
+      const firstItem = validItems[0];
+      const response = await axios.get(`http://localhost:8000/api/products/${firstItem.product_id}/`);
+      const product = response.data;
+      
+      const subtotal = getCartTotal();
+      
+      // Check if free delivery applies
+      if (product.free_delivery_min_amount && subtotal >= product.free_delivery_min_amount) {
+        setDeliveryFee(0);
+      } else {
+        setDeliveryFee(product.delivery_fee || 50); // Fallback to 50 if not set
+      }
+      
+      setFreeDeliveryMin(product.free_delivery_min_amount);
+    } catch (error) {
+      console.error('Failed to fetch delivery fee:', error);
+      setDeliveryFee(50); // Default fallback
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchDeliveryFees();
+}, [items, getCartTotal]);
+
+  const subtotal = getCartTotal();
+  const tax = subtotal * 0.05;
+  const total = subtotal + deliveryFee + tax;
 
   const handleCheckout = () => {
     if (!isAuthenticated) {
       navigate('/login', { state: { from: '/checkout' } });
     } else {
-      navigate('/checkout');
+      navigate('/checkout', { 
+        state: { 
+          deliveryFee,
+          freeDeliveryMin 
+        } 
+      });
     }
   };
 
@@ -59,7 +128,7 @@ const Cart: React.FC = () => {
               {/* Product Details */}
               <div className="flex-1">
                 <h3 className="font-semibold">{item.name}</h3>
-                <p className="text-green-600 font-bold">₹{item.price}</p>
+                <p className="text-green-600 font-bold">₹{formatPrice(item.price)}</p>
               </div>
               
               {/* Quantity Controls */}
@@ -83,7 +152,7 @@ const Cart: React.FC = () => {
               
               {/* Item Total */}
               <div className="text-right min-w-[100px]">
-                <p className="font-semibold">₹{item.price * item.quantity}</p>
+                <p className="font-semibold">₹{formatPrice(item.price * item.quantity)}</p>
                 <button
                   onClick={() => removeFromCart(item.product_id)}
                   className="text-red-500 text-sm hover:text-red-700"
@@ -100,30 +169,42 @@ const Cart: React.FC = () => {
           <div className="bg-white rounded-lg shadow p-6 sticky top-4">
             <h2 className="text-lg font-semibold mb-4">Order Summary</h2>
             
+            {loading && (
+              <div className="text-sm text-gray-500 mb-2">Calculating delivery...</div>
+            )}
+            
             <div className="space-y-2 mb-4">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span>₹{getCartTotal()}</span>
+                <span>₹{formatPrice(subtotal)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Delivery Fee</span>
-                <span>₹50</span>
+                <span className={deliveryFee === 0 ? 'text-green-600 font-semibold' : ''}>
+                  {deliveryFee === 0 ? 'FREE' : `₹${formatPrice(deliveryFee)}`}
+                </span>
               </div>
+              {freeDeliveryMin && subtotal < freeDeliveryMin && (
+                <div className="text-xs text-gray-500">
+                  Add ₹{formatPrice(freeDeliveryMin - subtotal)} more for free delivery
+                </div>
+              )}
               <div className="flex justify-between">
                 <span>Tax (5%)</span>
-                <span>₹{getCartTotal() * 0.05}</span>
+                <span>₹{formatPrice(tax)}</span>
               </div>
               <div className="border-t pt-2 mt-2">
                 <div className="flex justify-between font-bold">
                   <span>Total</span>
-                  <span>₹{getCartTotal() + 50 + (getCartTotal() * 0.05)}</span>
+                  <span>₹{formatPrice(total)}</span>
                 </div>
               </div>
             </div>
             
             <button
               onClick={handleCheckout}
-              className="w-full btn-primary py-3"
+              disabled={loading}
+              className="w-full btn-primary py-3 disabled:opacity-50"
             >
               Proceed to Checkout
             </button>

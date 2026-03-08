@@ -128,8 +128,13 @@ const ProductBrowse: React.FC = () => {
     setSearch('');
     fetchProducts();
   };
-  
-  const { addNotification } = useNotification(); 
+  // format price to 2 decimal places
+  const formatPrice = (price: number) => {
+    return Number(price).toFixed(2);
+  };
+
+  // Notification handling for add to cart
+  const { addNotification } = useNotification();
   const handleAddToCart = (product: Product) => {
     try {
       addToCart(product);
@@ -296,7 +301,7 @@ const ProductBrowse: React.FC = () => {
             )}
             {(priceRange.min || priceRange.max) && (
               <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm flex items-center gap-1">
-                ₹{priceRange.min || '0'} - ₹{priceRange.max || '∞'}
+                ₹{formatPrice(Number(priceRange.min) || 0)} - ₹{formatPrice(Number(priceRange.max) || 0)}
                 <button onClick={() => setPriceRange({ min: '', max: '' })} className="ml-1 hover:text-green-900">×</button>
               </span>
             )}
@@ -359,7 +364,7 @@ const ProductBrowse: React.FC = () => {
                 {/* Price and Stock */}
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xl font-bold text-green-600">
-                    ₹{product.price_per_unit}
+                    ₹{formatPrice(product.price_per_unit)}
                     <span className="text-sm font-normal text-gray-500 ml-1">
                       /{getUnitText(product.unit)}
                     </span>
@@ -376,8 +381,8 @@ const ProductBrowse: React.FC = () => {
                   onClick={() => handleAddToCart(product)}
                   disabled={product.available_quantity === 0}
                   className={`w-full py-2 rounded-lg transition ${product.available_quantity > 0
-                      ? 'btn-primary'
-                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    ? 'btn-primary'
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     }`}
                 >
                   {product.available_quantity > 0
