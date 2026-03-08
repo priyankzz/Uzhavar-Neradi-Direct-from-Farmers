@@ -27,6 +27,15 @@ interface Product {
   preorder_available: boolean;
   preorder_cutoff_hours: number;
   harvest_date: string | null;
+  delivery_available: boolean;
+  delivery_zones: string[];
+  delivery_fee: number;
+  free_delivery_min_amount: number | null;
+  pickup_available: boolean;
+  farm_pickup_address: string;
+  estimated_delivery_days: number;
+  delivery_partner_required: boolean;
+  delivery_partner_commission?: number;
 }
 
 interface Category {
@@ -58,7 +67,15 @@ const ProductManagement: React.FC = () => {
     category: undefined,
     preorder_available: false,
     preorder_cutoff_hours: 24,
-    harvest_date: null
+    harvest_date: null,
+    delivery_available: true,
+    delivery_zones: [],
+    delivery_fee: 50,
+    free_delivery_min_amount: 500,
+    pickup_available: true,
+    farm_pickup_address: '',
+    estimated_delivery_days: 2,
+    delivery_partner_required: true
   });
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -112,7 +129,19 @@ const ProductManagement: React.FC = () => {
     status: isTamil ? 'நிலை' : 'Status',
     actions: isTamil ? 'செயல்கள்' : 'Actions',
     active: isTamil ? 'செயலில்' : 'Active',
-    inactive: isTamil ? 'செயலற்று' : 'Inactive'
+    inactive: isTamil ? 'செயலற்று' : 'Inactive',
+    deliveryPartnerCommission: isTamil ? 'விநியோக கூட்டாளி கமிஷன் (%)' : 'Delivery Partner Commission (%)',
+    deliverySettings: isTamil ? 'விநியோக அமைப்புகள்' : 'Delivery Settings',
+    deliveryAvailable: isTamil ? 'விநியோகம் கிடைக்குமா?' : 'Delivery Available?',
+    deliveryZones: isTamil ? 'விநியோக மண்டலங்கள்' : 'Delivery Zones',
+    deliveryFee: isTamil ? 'விநியோக கட்டணம் (₹)' : 'Delivery Fee (₹)',
+    freeDeliveryMin: isTamil ? 'இலவச விநியோகத்திற்கான குறைந்தபட்ச தொகை' : 'Free Delivery Min Amount',
+    pickupAvailable: isTamil ? 'பண்ணையில் எடுத்துச் செல்லல் கிடைக்குமா?' : 'Farm Pickup Available?',
+    pickupAddress: isTamil ? 'பண்ணை முகவரி' : 'Farm Address',
+    estDeliveryDays: isTamil ? 'மதிப்பிடப்பட்ட விநியோக நாட்கள்' : 'Estimated Delivery Days',
+    deliveryPartnerRequired: isTamil ? 'விநியோக கூட்டாளி தேவையா?' : 'Delivery Partner Required?',
+    addZone: isTamil ? 'மண்டலத்தை சேர்க்க' : 'Add Zone',
+    zonePlaceholder: isTamil ? 'சென்னை, கோயம்புத்தூர்...' : 'Chennai, Coimbatore...'
   };
 
   useEffect(() => {
@@ -276,7 +305,7 @@ const ProductManagement: React.FC = () => {
       category: product.category,
       preorder_available: product.preorder_available,
       preorder_cutoff_hours: product.preorder_cutoff_hours,
-      is_active: product.is_active ,
+      is_active: product.is_active,
       harvest_date: product.harvest_date
     });
     setImagePreviews(product.images || []);
@@ -624,7 +653,170 @@ const ProductManagement: React.FC = () => {
                 )}
               </div>
             </div>
+            {/* Delivery Settings Section */}
+            <div className="md:col-span-2 border-t pt-6 mt-4">
+              <h3 className="text-lg font-semibold mb-4">{t.deliverySettings}</h3>
 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Delivery Available */}
+                <div>
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      name="delivery_available"
+                      checked={formData.delivery_available}
+                      onChange={handleInputChange}
+                      className="mr-2"
+                    />
+                    {t.deliveryAvailable}
+                  </label>
+                </div>
+
+                {/* Pickup Available */}
+                <div>
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      name="pickup_available"
+                      checked={formData.pickup_available}
+                      onChange={handleInputChange}
+                      className="mr-2"
+                    />
+                    {t.pickupAvailable}
+                  </label>
+                </div>
+
+                {/* Pickup Address - Only show if pickup is available */}
+                {formData.pickup_available && (
+                  <div className="md:col-span-2">
+                    <label className="block text-gray-700 mb-2">{t.pickupAddress}</label>
+                    <textarea
+                      name="farm_pickup_address"
+                      value={formData.farm_pickup_address || ''}
+                      onChange={handleInputChange}
+                      rows={2}
+                      className="input-field"
+                      placeholder={isTamil ? 'உங்கள் பண்ணை முகவரியை உள்ளிடவும்' : 'Enter your farm address'}
+                    />
+                  </div>
+                )}
+
+                {/* Delivery Settings - Only show if delivery is available */}
+                {formData.delivery_available && (
+                  <>
+                    {/* Delivery Fee (paid by customer) */}
+                    <div>
+                      <label className="block text-gray-700 mb-2">{t.deliveryFee}</label>
+                      <input
+                        type="number"
+                        name="delivery_fee"
+                        value={formData.delivery_fee}
+                        onChange={handleInputChange}
+                        min="0"
+                        className="input-field"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        {isTamil ? 'வாடிக்கையாளர் செலுத்தும் தொகை' : 'Amount paid by customer'}
+                      </p>
+                    </div>
+
+                    {/* Free Delivery Minimum */}
+                    <div>
+                      <label className="block text-gray-700 mb-2">{t.freeDeliveryMin}</label>
+                      <input
+                        type="number"
+                        name="free_delivery_min_amount"
+                        value={formData.free_delivery_min_amount || ''}
+                        onChange={handleInputChange}
+                        min="0"
+                        className="input-field"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        {isTamil ? 'இதற்கு மேல் இலவச விநியோகம்' : 'Free delivery above this amount'}
+                      </p>
+                    </div>
+
+                    {/* Delivery Partner Required */}
+                    <div>
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          name="delivery_partner_required"
+                          checked={formData.delivery_partner_required}
+                          onChange={handleInputChange}
+                          className="mr-2"
+                        />
+                        {t.deliveryPartnerRequired}
+                      </label>
+                      <p className="text-xs text-gray-500 mt-1 ml-6">
+                        {isTamil ? 'விநியோக கூட்டாளிக்கு கட்டணம் செலுத்தப்படும்' : 'Delivery partner will be paid for this'}
+                      </p>
+                    </div>
+
+                    {/* Delivery Partner Commission - Only show if delivery partner required */}
+                    {formData.delivery_partner_required && (
+                      <div>
+                        <label className="block text-gray-700 mb-2">{t.deliveryPartnerCommission}</label>
+                        <input
+                          type="number"
+                          name="delivery_partner_commission"
+                          value={formData.delivery_partner_commission || 30}
+                          onChange={handleInputChange}
+                          min="0"
+                          max="100"
+                          className="input-field"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          {isTamil ? 'விநியோக கூட்டாளிக்கு செல்லும் சதவீதம்' : 'Percentage that goes to delivery partner'}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Estimated Delivery Days */}
+                    <div>
+                      <label className="block text-gray-700 mb-2">{t.estDeliveryDays}</label>
+                      <input
+                        type="number"
+                        name="estimated_delivery_days"
+                        value={formData.estimated_delivery_days}
+                        onChange={handleInputChange}
+                        min="1"
+                        className="input-field"
+                      />
+                    </div>
+
+                    {/* Delivery Zones */}
+                    <div className="md:col-span-2">
+                      <label className="block text-gray-700 mb-2">{t.deliveryZones}</label>
+                      <input
+                        type="text"
+                        value={formData.delivery_zones?.join(', ') || ''}
+                        onChange={(e) => {
+                          const zones = e.target.value.split(',').map(z => z.trim()).filter(z => z);
+                          setFormData({ ...formData, delivery_zones: zones });
+                        }}
+                        className="input-field"
+                        placeholder={t.zonePlaceholder}
+                      />
+                      <p className="text-sm text-gray-500 mt-1">
+                        {isTamil ? 'கமாவால் பிரிக்கவும் (எ.கா: சென்னை, கோயம்புத்தூர்)' : 'Separate with commas (e.g., Chennai, Coimbatore)'}
+                      </p>
+                    </div>
+                  </>
+                )}
+
+                {/* If neither delivery nor pickup is available, show warning */}
+                {!formData.delivery_available && !formData.pickup_available && (
+                  <div className="md:col-span-2 bg-yellow-50 p-4 rounded-lg">
+                    <p className="text-yellow-800 text-sm">
+                      ⚠️ {isTamil
+                        ? 'எச்சரிக்கை: விநியோகமோ அல்லது பண்ணையில் எடுத்துச் செல்லலோ இல்லை. வாடிக்கையாளர்கள் இந்த பொருளை வாங்க முடியாது!'
+                        : 'Warning: No delivery or pickup available. Customers cannot purchase this product!'}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
             <div className="flex gap-4 mt-6">
               <button
                 type="submit"
@@ -690,8 +882,8 @@ const ProductManagement: React.FC = () => {
                   <button
                     onClick={() => handleToggleActive(product)}
                     className={`px-2 py-1 rounded-full text-xs ${product.is_active
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-gray-100 text-gray-800'
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-gray-100 text-gray-800'
                       }`}
                   >
                     {product.is_active ? t.active : t.inactive}
