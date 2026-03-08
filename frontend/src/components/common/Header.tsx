@@ -25,8 +25,8 @@ const Header: React.FC = () => {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <img 
-              src="/logo.png" 
+            <img
+              src="/logo.png"
               alt={t('appName')}
               className="h-10 w-auto"
               onError={(e) => {
@@ -45,7 +45,7 @@ const Header: React.FC = () => {
             <Link to="/products" className="hover:text-green-200 transition">
               {t('products')}
             </Link>
-            
+
             {isAuthenticated && user && (
               <>
                 {user.role === 'FARMER' && (
@@ -53,15 +53,16 @@ const Header: React.FC = () => {
                     {t('dashboard')}
                   </Link>
                 )}
+
+                {/* Show cart for ALL authenticated users - not just customers */}
+                <Link to="/cart" className="hover:text-green-200 transition">
+                  🛒 {t('cart')}
+                </Link>
+
                 {user.role === 'CUSTOMER' && (
-                  <>
-                    <Link to="/customer" className="hover:text-green-200 transition">
-                      {t('dashboard')}
-                    </Link>
-                    <Link to="/cart" className="hover:text-green-200 transition">
-                      🛒 {t('cart')}
-                    </Link>
-                  </>
+                  <Link to="/customer" className="hover:text-green-200 transition">
+                    {t('dashboard')}
+                  </Link>
                 )}
                 {user.role === 'DELIVERY' && (
                   <Link to="/delivery" className="hover:text-green-200 transition">
@@ -80,7 +81,7 @@ const Header: React.FC = () => {
           {/* Right side */}
           <div className="flex items-center space-x-4">
             <LanguageSwitcher />
-            
+
             {isAuthenticated ? (
               <div className="flex items-center space-x-4">
                 <span className="text-sm">

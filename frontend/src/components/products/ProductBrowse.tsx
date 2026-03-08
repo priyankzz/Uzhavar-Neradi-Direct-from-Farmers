@@ -8,6 +8,8 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useLanguage } from '../../hooks/useLanguage';
 import { useCart } from '../../hooks/useCart';
+import { useNotification } from '../../hooks/useNotification';
+
 
 interface Product {
   id: number;
@@ -41,7 +43,7 @@ const ProductBrowse: React.FC = () => {
   const [organic, setOrganic] = useState('');
   const [sort, setSort] = useState('-created_at');
   const [priceRange, setPriceRange] = useState({ min: '', max: '' });
-  
+
   const { language, t } = useLanguage();
   const { addToCart } = useCart();
   const isTamil = language === 'ta';
@@ -101,7 +103,7 @@ const ProductBrowse: React.FC = () => {
       if (search) params.search = search;
       if (priceRange.min) params.min_price = priceRange.min;
       if (priceRange.max) params.max_price = priceRange.max;
-      
+
       const response = await axios.get('http://localhost:8000/api/products/', { params });
       const productsData = response.data?.results || response.data || [];
       setProducts(Array.isArray(productsData) ? productsData : []);
@@ -125,6 +127,30 @@ const ProductBrowse: React.FC = () => {
     setPriceRange({ min: '', max: '' });
     setSearch('');
     fetchProducts();
+  };
+  
+  const { addNotification } = useNotification(); 
+  const handleAddToCart = (product: Product) => {
+    try {
+      addToCart(product);
+      // Show success notification
+      addNotification({
+        type: 'success',
+        message: isTamil
+          ? `${getProductName(product)} வண்டியில் சேர்க்கப்பட்டது!`
+          : `${product.name_en} added to cart!`,
+        duration: 3000
+      });
+    } catch (error) {
+      // Show error notification
+      addNotification({
+        type: 'error',
+        message: isTamil
+          ? 'வண்டியில் சேர்க்க முடியவில்லை'
+          : 'Failed to add to cart',
+        duration: 3000
+      });
+    }
   };
 
   const getProductName = (product: Product) => {
@@ -171,7 +197,7 @@ const ProductBrowse: React.FC = () => {
         <h1 className="text-2xl font-bold mb-4">
           {isTamil ? 'எங்கள் பொருட்கள்' : 'Our Products'}
         </h1>
-        
+
         {/* Search Bar */}
         <form onSubmit={handleSearch} className="flex gap-2 mb-4">
           <input
@@ -185,8 +211,8 @@ const ProductBrowse: React.FC = () => {
             {isTamil ? 'தேடுக' : 'Search'}
           </button>
           {(category || organic || priceRange.min || priceRange.max || search) && (
-            <button 
-              type="button" 
+            <button
+              type="button"
               onClick={clearFilters}
               className="btn-secondary"
             >
@@ -205,7 +231,7 @@ const ProductBrowse: React.FC = () => {
           >
             {renderCategoryOptions()}
           </select>
-          
+
           {/* Organic/Conventional Filter */}
           <select
             value={organic}
@@ -216,7 +242,7 @@ const ProductBrowse: React.FC = () => {
             <option value="true">{filterText.organic}</option>
             <option value="false">{filterText.conventional}</option>
           </select>
-          
+
           {/* Sort Filter */}
           <select
             value={sort}
@@ -235,7 +261,7 @@ const ProductBrowse: React.FC = () => {
               type="number"
               placeholder={filterText.min}
               value={priceRange.min}
-              onChange={(e) => setPriceRange({...priceRange, min: e.target.value})}
+              onChange={(e) => setPriceRange({ ...priceRange, min: e.target.value })}
               className="input-field w-1/2"
               min="0"
             />
@@ -243,7 +269,7 @@ const ProductBrowse: React.FC = () => {
               type="number"
               placeholder={filterText.max}
               value={priceRange.max}
-              onChange={(e) => setPriceRange({...priceRange, max: e.target.value})}
+              onChange={(e) => setPriceRange({ ...priceRange, max: e.target.value })}
               className="input-field w-1/2"
               min="0"
             />
@@ -304,18 +330,18 @@ const ProductBrowse: React.FC = () => {
                   )}
                 </div>
               </Link>
-              
+
               <div className="p-4">
                 <Link to={`/products/${product.id}`}>
                   <h3 className="font-semibold text-lg mb-1 hover:text-green-600 transition">
                     {getProductName(product)}
                   </h3>
                 </Link>
-                
+
                 <p className="text-gray-600 text-sm mb-2 line-clamp-1">
                   {product.farmer_farm} • {product.farmer_name}
                 </p>
-                
+
                 {/* Rating */}
                 <div className="flex items-center mb-2">
                   <div className="flex text-yellow-400">
@@ -329,7 +355,7 @@ const ProductBrowse: React.FC = () => {
                     ({product.review_count || 0})
                   </span>
                 </div>
-                
+
                 {/* Price and Stock */}
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xl font-bold text-green-600">
@@ -339,23 +365,22 @@ const ProductBrowse: React.FC = () => {
                     </span>
                   </span>
                   <span className={`text-xs ${product.available_quantity > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {product.available_quantity > 0 
+                    {product.available_quantity > 0
                       ? `${product.available_quantity} ${getUnitText(product.unit)}`
                       : filterText.outOfStock}
                   </span>
                 </div>
-                
+
                 {/* Add to Cart Button */}
                 <button
-                  onClick={() => addToCart(product)}
+                  onClick={() => handleAddToCart(product)}
                   disabled={product.available_quantity === 0}
-                  className={`w-full py-2 rounded-lg transition ${
-                    product.available_quantity > 0
+                  className={`w-full py-2 rounded-lg transition ${product.available_quantity > 0
                       ? 'btn-primary'
                       : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  }`}
+                    }`}
                 >
-                  {product.available_quantity > 0 
+                  {product.available_quantity > 0
                     ? (isTamil ? 'வண்டியில் சேர்க்க' : 'Add to Cart')
                     : filterText.outOfStock}
                 </button>
@@ -377,8 +402,8 @@ const ProductBrowse: React.FC = () => {
       {/* Results Count */}
       {!loading && products.length > 0 && (
         <div className="mt-8 text-sm text-gray-500 text-center">
-          {isTamil 
-            ? `${products.length} பொருட்கள் காட்டப்படுகின்றன` 
+          {isTamil
+            ? `${products.length} பொருட்கள் காட்டப்படுகின்றன`
             : `Showing ${products.length} products`}
         </div>
       )}

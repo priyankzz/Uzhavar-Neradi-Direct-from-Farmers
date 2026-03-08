@@ -22,8 +22,8 @@ import OTPVerification from './components/auth/OTPVerification';
 
 // Customer Pages
 import CustomerDashboard from './components/customer/Dashboard';
-import ProductBrowse from './components/customer/ProductBrowse';
-import ProductDetail from './components/customer/ProductDetail';
+import ProductBrowse from './components/products/ProductBrowse';
+import ProductDetail from './components/products/ProductDetail';
 import Cart from './components/customer/Cart';
 import Checkout from './components/customer/Checkout';
 import OrderHistory from './components/customer/OrderHistory';
@@ -85,11 +85,7 @@ function App() {
               <CustomerDashboard />
             </ProtectedRoute>
           } />
-          <Route path="/cart" element={
-            <ProtectedRoute role="CUSTOMER">
-              <Cart />
-            </ProtectedRoute>
-          } />
+          <Route path="/cart" element={<Cart />} />  // If Cart itself handles auth
           <Route path="/checkout" element={
             <ProtectedRoute role="CUSTOMER">
               <Checkout />
