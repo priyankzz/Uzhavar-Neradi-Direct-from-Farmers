@@ -10,6 +10,7 @@ from django.utils import timezone
 from .models import Order, DeliveryAssignment, DeliveryTracking
 from .serializers import OrderSerializer, CreateOrderSerializer, DeliveryAssignmentSerializer, DeliveryTrackingSerializer
 from users.permissions import IsCustomer, IsFarmer, IsDeliveryPartner
+from rest_framework.permissions import IsAuthenticated
 
 class OrderListView(generics.ListAPIView):
     """List orders based on user role"""
@@ -46,7 +47,7 @@ class OrderDetailView(generics.RetrieveAPIView):
 class CreateOrderView(generics.CreateAPIView):
     """Create new order"""
     serializer_class = CreateOrderSerializer
-    permission_classes = [IsCustomer]
+    permission_classes = [IsAuthenticated] 
     
     def perform_create(self, serializer):
         serializer.save()
