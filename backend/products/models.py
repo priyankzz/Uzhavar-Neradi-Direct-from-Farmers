@@ -66,6 +66,18 @@ class Product(models.Model):
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    # Delivery fields
+    delivery_available = models.BooleanField(default=True)
+    delivery_zones = models.JSONField(default=list)
+    delivery_fee = models.DecimalField(max_digits=10, decimal_places=2, default=50.00)
+    free_delivery_min_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    pickup_available = models.BooleanField(default=True)
+    farm_pickup_address = models.TextField(blank=True)
+    estimated_delivery_days = models.IntegerField(default=2)
+    delivery_partner_required = models.BooleanField(default=True)
+    delivery_partner_commission = models.DecimalField(max_digits=5, decimal_places=2, default=30.00)
+    
     
     def __str__(self):
         return f"{self.name_en} - {self.farmer.username}"

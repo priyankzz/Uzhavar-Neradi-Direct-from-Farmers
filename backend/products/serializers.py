@@ -23,7 +23,27 @@ class ProductSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Product
-        fields = '__all__'
+        fields = [
+            'id', 'farmer', 'farmer_name', 'farmer_farm',
+            'category', 'category_name',
+            'name_en', 'name_ta', 'description_en', 'description_ta',
+            'price_per_unit', 'unit', 'available_quantity', 'min_order_quantity',
+            'is_organic', 'images', 'harvest_date', 'expiry_date',
+            'preorder_available', 'preorder_cutoff_hours',
+            'is_active', 'is_featured',
+            'created_at', 'updated_at',
+            'review_count', 'average_rating',
+            # Delivery fields
+            'delivery_available',
+            'delivery_zones',
+            'delivery_fee',
+            'free_delivery_min_amount',
+            'pickup_available',
+            'farm_pickup_address',
+            'estimated_delivery_days',
+            'delivery_partner_required',
+            'delivery_partner_commission'
+        ]
         read_only_fields = ['created_at', 'updated_at', 'farmer']
     
     def get_review_count(self, obj):
