@@ -36,6 +36,7 @@ interface Product {
   estimated_delivery_days: number;
   delivery_partner_required: boolean;
   delivery_partner_commission?: number;
+
 }
 
 interface Category {
@@ -71,11 +72,12 @@ const ProductManagement: React.FC = () => {
     delivery_available: true,
     delivery_zones: [],
     delivery_fee: 50,
-    free_delivery_min_amount: 500,
+    free_delivery_min_amount: null,
     pickup_available: true,
     farm_pickup_address: '',
     estimated_delivery_days: 2,
-    delivery_partner_required: true
+    delivery_partner_required: true,
+    delivery_partner_commission: 30
   });
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -228,91 +230,122 @@ const ProductManagement: React.FC = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
-    setError('');
-    setSuccess('');
+  e.preventDefault();
+  setSubmitting(true);
+  setError('');
+  setSuccess('');
 
-    try {
-      const formDataToSend = new FormData();
+  try {
+    const formDataToSend = new FormData();
 
-      // Append form fields
-      Object.keys(formData).forEach(key => {
-        const value = formData[key as keyof typeof formData];
-        if (value !== undefined && value !== null && value !== '') {
+    console.log('🔥 Submitting form data:');
+    
+    // ✅ FIX: Add this loop to append all form fields
+    Object.keys(formData).forEach(key => {
+      const value = formData[key as keyof typeof formData];
+      if (value !== undefined && value !== null && value !== '') {
+        // Handle delivery_zones specially
+        if (key === 'delivery_zones') {
+          if (typeof value === 'string') {
+            const zonesArray = value.split(',').map(z => z.trim()).filter(z => z);
+            formDataToSend.append(key, JSON.stringify(zonesArray));
+          } else if (Array.isArray(value)) {
+            formDataToSend.append(key, JSON.stringify(value));
+          }
+        } else {
           formDataToSend.append(key, String(value));
         }
-      });
-
-      // Append images
-      imageFiles.forEach(file => {
-        formDataToSend.append('images', file);
-      });
-
-      let response;
-      if (editingProduct) {
-        response = await axios.put(
-          `http://localhost:8000/api/products/${editingProduct.id}/update/`,
-          formDataToSend,
-          {
-            headers: {
-              'Authorization': `Bearer ${sessionStorage.getItem('token')}`,
-              'Content-Type': 'multipart/form-data'
-            }
-          }
-        );
-      } else {
-        response = await axios.post(
-          'http://localhost:8000/api/products/create/',
-          formDataToSend,
-          {
-            headers: {
-              'Authorization': `Bearer ${sessionStorage.getItem('token')}`,
-              'Content-Type': 'multipart/form-data'
-            }
-          }
-        );
       }
+    });
 
-      if (response.data) {
-        await fetchProducts(); // Refresh the list
-        setSuccess(editingProduct ? t.updateSuccess : t.addSuccess);
-        resetForm();
+    // Append images
+    imageFiles.forEach(file => {
+      formDataToSend.append('images', file);
+    });
+    
+    console.log('🔥 FormData entries:');
+    Array.from(formDataToSend.entries()).forEach(([key, value]) => {
+      console.log(key + ', ' + value);
+    });
 
-        // Clear success message after 3 seconds
-        setTimeout(() => setSuccess(''), 3000);
-      }
-    } catch (err: any) {
-      console.error('Failed to save product:', err);
-      setError(err.response?.data?.message || (isTamil ? 'பொருளை சேமிக்க முடியவில்லை' : 'Failed to save product'));
-    } finally {
-      setSubmitting(false);
+    let response;
+    if (editingProduct) {
+      console.log('🔥 Updating product ID:', editingProduct.id);
+      response = await axios.put(
+        `http://localhost:8000/api/products/${editingProduct.id}/update/`,
+        formDataToSend,
+        {
+          headers: {
+            'Authorization': `Bearer ${sessionStorage.getItem('token')}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        }
+      );
+    } else {
+      response = await axios.post(
+        'http://localhost:8000/api/products/create/',
+        formDataToSend,
+        {
+          headers: {
+            'Authorization': `Bearer ${sessionStorage.getItem('token')}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        }
+      );
     }
-  };
+
+    if (response.data) {
+      await fetchProducts();
+      setSuccess(editingProduct ? t.updateSuccess : t.addSuccess);
+      resetForm();
+      setTimeout(() => setSuccess(''), 3000);
+    }
+  } catch (err: any) {
+    console.error('🔥 Full error:', err);
+    console.error('🔥 Error response:', err.response?.data);
+    console.error('🔥 Error status:', err.response?.status);
+    console.error('🔥 Error headers:', err.response?.headers);
+    console.error('Failed to save product:', err);
+    setError(err.response?.data?.message || (isTamil ? 'பொருளை சேமிக்க முடியவில்லை' : 'Failed to save product'));
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   const handleEdit = (product: Product) => {
-    setEditingProduct(product);
-    setFormData({
-      name_en: product.name_en,
-      name_ta: product.name_ta,
-      description_en: product.description_en,
-      description_ta: product.description_ta,
-      price_per_unit: product.price_per_unit,
-      unit: product.unit,
-      available_quantity: product.available_quantity,
-      min_order_quantity: product.min_order_quantity,
-      is_organic: product.is_organic,
-      category: product.category,
-      preorder_available: product.preorder_available,
-      preorder_cutoff_hours: product.preorder_cutoff_hours,
-      is_active: product.is_active,
-      harvest_date: product.harvest_date
-    });
-    setImagePreviews(product.images || []);
-    setImageFiles([]);
-    setShowForm(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  setEditingProduct(product);
+  setFormData({
+    name_en: product.name_en,
+    name_ta: product.name_ta,
+    description_en: product.description_en,
+    description_ta: product.description_ta,
+    price_per_unit: product.price_per_unit,
+    unit: product.unit,
+    available_quantity: product.available_quantity,
+    min_order_quantity: product.min_order_quantity,
+    is_organic: product.is_organic,
+    category: product.category,
+    preorder_available: product.preorder_available,
+    preorder_cutoff_hours: product.preorder_cutoff_hours,
+    harvest_date: product.harvest_date,
+    is_active: product.is_active,
+    
+    // Add all delivery fields
+    delivery_available: product.delivery_available,
+    delivery_zones: product.delivery_zones || [],
+    delivery_fee: product.delivery_fee,
+    free_delivery_min_amount: product.free_delivery_min_amount,
+    pickup_available: product.pickup_available,
+    farm_pickup_address: product.farm_pickup_address || '',
+    estimated_delivery_days: product.estimated_delivery_days,
+    delivery_partner_required: product.delivery_partner_required,
+    delivery_partner_commission: product.delivery_partner_commission
+  });
+  setImagePreviews(product.images || []);
+  setImageFiles([]);
+  setShowForm(true);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
 
   const handleDelete = async (productId: number) => {
     if (!window.confirm(t.deleteConfirm)) return;
