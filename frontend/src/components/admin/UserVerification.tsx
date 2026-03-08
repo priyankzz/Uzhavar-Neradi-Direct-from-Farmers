@@ -43,7 +43,7 @@ const UserVerification: React.FC = () => {
     try {
       const response = await axios.get('http://localhost:8000/api/admin/verifications/', {
         params: { status: filter },
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
       });
       
       setRequests(response.data);
@@ -61,7 +61,7 @@ const UserVerification: React.FC = () => {
         `http://localhost:8000/api/admin/verifications/${requestId}/approve/`,
         {},
         {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+          headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
         }
       );
       
@@ -84,7 +84,7 @@ const UserVerification: React.FC = () => {
         `http://localhost:8000/api/admin/verifications/${selectedRequest.id}/reject/`,
         { reason: rejectionReason },
         {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+          headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
         }
       );
       

@@ -35,7 +35,7 @@ const DisputeManagement: React.FC = () => {
   const fetchDisputes = async () => {
     try {
       const response = await axios.get(`http://localhost:8000/api/admin/disputes/?status=${filter}`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
       });
       setDisputes(response.data);
     } catch (error) {
@@ -48,7 +48,7 @@ const DisputeManagement: React.FC = () => {
   const fetchDisputeDetails = async (disputeId: number) => {
     try {
       const response = await axios.get(`http://localhost:8000/api/admin/disputes/${disputeId}/`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
       });
       setSelectedDispute(response.data);
       setMessages(response.data.messages || []);
@@ -64,7 +64,7 @@ const DisputeManagement: React.FC = () => {
       await axios.post(
         `http://localhost:8000/api/admin/disputes/${selectedDispute.id}/messages/`,
         { message: newMessage },
-        { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }
+        { headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` } }
       );
       setNewMessage('');
       fetchDisputeDetails(selectedDispute.id);
@@ -80,7 +80,7 @@ const DisputeManagement: React.FC = () => {
       await axios.post(
         `http://localhost:8000/api/admin/disputes/${selectedDispute.id}/resolve/`,
         { resolution, action },
-        { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }
+        { headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` } }
       );
       fetchDisputes();
       setSelectedDispute(null);

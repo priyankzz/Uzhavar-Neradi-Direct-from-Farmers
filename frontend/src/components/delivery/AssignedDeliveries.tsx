@@ -103,7 +103,7 @@ const AssignedDeliveries: React.FC = () => {
       const response = await axios.get(
         'http://localhost:8000/api/orders/delivery/assignments/',
         {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+          headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
         }
       );
       
@@ -145,7 +145,7 @@ const AssignedDeliveries: React.FC = () => {
         `http://localhost:8000/api/orders/delivery/${assignmentId}/update-status/`,
         { status: 'ACCEPTED' },
         {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+          headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
         }
       );
       fetchAssignments();
@@ -163,7 +163,7 @@ const AssignedDeliveries: React.FC = () => {
           reason: reason 
         },
         {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+          headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
         }
       );
       fetchAssignments();
@@ -186,7 +186,7 @@ const AssignedDeliveries: React.FC = () => {
           longitude: currentLocation?.lng
         },
         {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+          headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
         }
       );
       

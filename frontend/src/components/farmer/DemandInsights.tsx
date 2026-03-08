@@ -61,14 +61,14 @@ const DemandInsights: React.FC = () => {
     try {
       const [insightsRes, predictionsRes, productsRes] = await Promise.all([
         axios.get('http://localhost:8000/api/analytics/demand-insights/', {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+          headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
         }),
         axios.get('http://localhost:8000/api/analytics/predictions/', {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+          headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
         }),
         axios.get('http://localhost:8000/api/products/', {
           params: { farmer: 'me' },
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+          headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
         })
       ]);
 

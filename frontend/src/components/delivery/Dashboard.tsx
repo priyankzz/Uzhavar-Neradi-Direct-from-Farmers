@@ -103,7 +103,7 @@ const DeliveryDashboard: React.FC = () => {
       const deliveriesResponse = await axios.get(
         'http://localhost:8000/api/orders/delivery/assignments/',
         {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+          headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
         }
       );
 
@@ -166,7 +166,7 @@ const DeliveryDashboard: React.FC = () => {
           'http://localhost:8000/api/users/delivery/location/',
           currentLocation,
           {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
           }
         );
       } catch (error) {

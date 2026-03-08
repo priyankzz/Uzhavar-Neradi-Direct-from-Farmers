@@ -74,7 +74,7 @@ const CustomerDashboard: React.FC = () => {
   const fetchDashboardData = async () => {
     try {
       const ordersResponse = await axios.get('http://localhost:8000/api/orders/', {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
       });
       
       const orders = ordersResponse.data.results || ordersResponse.data;

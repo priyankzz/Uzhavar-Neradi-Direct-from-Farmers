@@ -88,11 +88,11 @@ const FarmerDashboard: React.FC = () => {
     try {
       const productsResponse = await axios.get('http://localhost:8000/api/products/', {
         params: { farmer: user?.id },
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
       });
       
       const ordersResponse = await axios.get('http://localhost:8000/api/orders/', {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
       });
 
       const products = productsResponse.data.results || productsResponse.data;

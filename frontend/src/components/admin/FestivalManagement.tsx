@@ -53,7 +53,7 @@ const FestivalManagement: React.FC = () => {
     const fetchFestivals = async () => {
         try {
             const response = await axios.get('http://localhost:8000/api/admin/festivals/', {
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
             });
             setFestivals(response.data);
         } catch (error) {
@@ -92,7 +92,7 @@ const FestivalManagement: React.FC = () => {
                     `http://localhost:8000/api/admin/festivals/${editingFestival.id}/`,
                     formData,
                     {
-                        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                        headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
                     }
                 );
             } else {
@@ -100,7 +100,7 @@ const FestivalManagement: React.FC = () => {
                     'http://localhost:8000/api/admin/festivals/',
                     formData,
                     {
-                        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                        headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
                     }
                 );
             }
@@ -117,7 +117,7 @@ const FestivalManagement: React.FC = () => {
 
         try {
             await axios.delete(`http://localhost:8000/api/admin/festivals/${id}/`, {
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
             });
             fetchFestivals();
         } catch (error) {

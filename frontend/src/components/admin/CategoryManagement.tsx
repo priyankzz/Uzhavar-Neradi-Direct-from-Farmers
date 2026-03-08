@@ -39,7 +39,7 @@ const CategoryManagement: React.FC = () => {
   const fetchCategories = async () => {
     try {
       const response = await axios.get('http://localhost:8000/api/admin/categories/', {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
       });
       setCategories(response.data);
     } catch (error) {
@@ -81,7 +81,7 @@ const CategoryManagement: React.FC = () => {
           formDataToSend,
           {
             headers: {
-              'Authorization': `Bearer ${localStorage.getItem('token')}`,
+              'Authorization': `Bearer ${sessionStorage.getItem('token')}`,
               'Content-Type': 'multipart/form-data'
             }
           }
@@ -92,7 +92,7 @@ const CategoryManagement: React.FC = () => {
           formDataToSend,
           {
             headers: {
-              'Authorization': `Bearer ${localStorage.getItem('token')}`,
+              'Authorization': `Bearer ${sessionStorage.getItem('token')}`,
               'Content-Type': 'multipart/form-data'
             }
           }
@@ -113,7 +113,7 @@ const CategoryManagement: React.FC = () => {
     
     try {
       await axios.delete(`http://localhost:8000/api/admin/categories/${id}/`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
       });
       fetchCategories();
     } catch (error) {

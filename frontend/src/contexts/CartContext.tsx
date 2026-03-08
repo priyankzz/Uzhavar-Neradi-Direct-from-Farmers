@@ -34,9 +34,9 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [loading, setLoading] = useState(true);
   const { isAuthenticated, user } = useAuth();
 
-  // Load cart from localStorage on mount
+  // Load cart from sessionStorage on mount
   useEffect(() => {
-    const savedCart = localStorage.getItem('cart');
+    const savedCart = sessionStorage.getItem('cart');
     if (savedCart) {
       try {
         setItems(JSON.parse(savedCart));
@@ -47,10 +47,10 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setLoading(false);
   }, []);
 
-  // Save cart to localStorage whenever it changes
+  // Save cart to sessionStorage whenever it changes
   useEffect(() => {
     if (!loading) {
-      localStorage.setItem('cart', JSON.stringify(items));
+      sessionStorage.setItem('cart', JSON.stringify(items));
     }
   }, [items, loading]);
 

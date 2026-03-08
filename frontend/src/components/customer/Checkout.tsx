@@ -58,7 +58,7 @@ const Checkout: React.FC = () => {
 
       const response = await axios.post('http://localhost:8000/api/orders/create/', orderData, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         }
       });
 

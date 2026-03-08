@@ -51,7 +51,7 @@ const OrderHistory: React.FC = () => {
     try {
       const response = await axios.get('http://localhost:8000/api/orders/', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         }
       });
       

@@ -119,7 +119,7 @@ const LogoManagement: React.FC = () => {
         formData,
         {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Authorization': `Bearer ${sessionStorage.getItem('token')}`,
             'Content-Type': 'multipart/form-data'
           }
         }

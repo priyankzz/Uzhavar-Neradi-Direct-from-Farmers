@@ -66,7 +66,7 @@ const OrderManagement: React.FC = () => {
   const fetchOrders = async () => {
     try {
       const response = await axios.get('http://localhost:8000/api/orders/', {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
       });
       setOrders(response.data.results || response.data);
     } catch (error) {
@@ -80,7 +80,7 @@ const OrderManagement: React.FC = () => {
     try {
       const response = await axios.get('http://localhost:8000/api/admin/users/', {
         params: { role: 'DELIVERY', available: true },
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
       });
       setDeliveryPartners(response.data);
     } catch (error) {
@@ -107,7 +107,7 @@ const OrderManagement: React.FC = () => {
       await axios.post(
         `http://localhost:8000/api/orders/${orderId}/update-status/`,
         { status: newStatus },
-        { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }
+        { headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` } }
       );
       fetchOrders();
     } catch (error) {
@@ -123,7 +123,7 @@ const OrderManagement: React.FC = () => {
       await axios.post(
         `http://localhost:8000/api/orders/${selectedOrder.id}/assign-delivery/`,
         { delivery_partner_id: selectedPartner },
-        { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }
+        { headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` } }
       );
       
       setShowAssignModal(false);

@@ -49,7 +49,7 @@ const Announcements: React.FC = () => {
   const fetchAnnouncements = async () => {
     try {
       const response = await axios.get('http://localhost:8000/api/admin/announcements/', {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
       });
       setAnnouncements(response.data);
     } catch (error) {
@@ -84,7 +84,7 @@ const Announcements: React.FC = () => {
           `http://localhost:8000/api/admin/announcements/${editingAnnouncement.id}/`,
           formData,
           {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
           }
         );
       } else {
@@ -92,7 +92,7 @@ const Announcements: React.FC = () => {
           'http://localhost:8000/api/admin/announcements/',
           formData,
           {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
           }
         );
       }
@@ -109,7 +109,7 @@ const Announcements: React.FC = () => {
     
     try {
       await axios.delete(`http://localhost:8000/api/admin/announcements/${id}/`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
       });
       fetchAnnouncements();
     } catch (error) {

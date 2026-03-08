@@ -31,7 +31,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+  const [token, setToken] = useState<string | null>(sessionStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
 
   // Set axios default header
@@ -52,7 +52,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           setUser(response.data);
         } catch (error) {
           console.error('Failed to load user:', error);
-          localStorage.removeItem('token');
+          sessionStorage.removeItem('token');
           setToken(null);
         }
       }
@@ -70,7 +70,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
       
       const { access, user } = response.data;
-      localStorage.setItem('token', access);
+      sessionStorage.setItem('token', access);
       setToken(access);
       setUser(user);
       
@@ -103,7 +103,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
       
       const { access, user } = response.data;
-      localStorage.setItem('token', access);
+      sessionStorage.setItem('token', access);
       setToken(access);
       setUser(user);
       
@@ -117,7 +117,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
+    sessionStorage.removeItem('token');
     setToken(null);
     setUser(null);
   };

@@ -66,7 +66,7 @@ const TrackOrder: React.FC = () => {
     try {
       const response = await axios.get(`http://localhost:8000/api/orders/${id}/track/`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         }
       });
       
@@ -84,7 +84,7 @@ const TrackOrder: React.FC = () => {
     try {
       const response = await axios.get(`http://localhost:8000/api/orders/${id}/track/`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         }
       });
       

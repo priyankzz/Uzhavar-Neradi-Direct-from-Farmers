@@ -32,7 +32,7 @@ const AuditLogs: React.FC = () => {
     try {
       const response = await axios.get('http://localhost:8000/api/admin/audit-logs/', {
         params: { action_type: filter !== 'ALL' ? filter : undefined },
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
       });
       setLogs(response.data);
     } catch (error) {

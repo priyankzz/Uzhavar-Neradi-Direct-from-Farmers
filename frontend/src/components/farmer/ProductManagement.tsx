@@ -152,11 +152,11 @@ const ProductManagement: React.FC = () => {
   const fetchProducts = async () => {
     try {
       console.log('1. Starting to fetch products...');
-      console.log('2. Token exists:', !!localStorage.getItem('token'));
+      console.log('2. Token exists:', !!sessionStorage.getItem('token'));
 
       const response = await axios.get('http://localhost:8000/api/products/', {
         params: { farmer: 'me' },
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
       });
 
       console.log('3. Full API Response:', response);
@@ -256,7 +256,7 @@ const ProductManagement: React.FC = () => {
           formDataToSend,
           {
             headers: {
-              'Authorization': `Bearer ${localStorage.getItem('token')}`,
+              'Authorization': `Bearer ${sessionStorage.getItem('token')}`,
               'Content-Type': 'multipart/form-data'
             }
           }
@@ -267,7 +267,7 @@ const ProductManagement: React.FC = () => {
           formDataToSend,
           {
             headers: {
-              'Authorization': `Bearer ${localStorage.getItem('token')}`,
+              'Authorization': `Bearer ${sessionStorage.getItem('token')}`,
               'Content-Type': 'multipart/form-data'
             }
           }
@@ -319,7 +319,7 @@ const ProductManagement: React.FC = () => {
 
     try {
       await axios.delete(`http://localhost:8000/api/products/${productId}/delete/`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
       });
       await fetchProducts();
       setSuccess(isTamil ? 'பொருள் நீக்கப்பட்டது' : 'Product deleted');
@@ -336,7 +336,7 @@ const ProductManagement: React.FC = () => {
         `http://localhost:8000/api/products/${product.id}/update/`,
         { is_active: !product.is_active },
         {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+          headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
         }
       );
       await fetchProducts();

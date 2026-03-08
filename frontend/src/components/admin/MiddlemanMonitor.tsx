@@ -36,7 +36,7 @@ const MiddlemanMonitor: React.FC = () => {
   const fetchFlags = async () => {
     try {
       const response = await axios.get(`http://localhost:8000/api/admin/middleman/flags/?status=${filter}`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
       });
       setFlags(response.data);
     } catch (error) {
@@ -49,7 +49,7 @@ const MiddlemanMonitor: React.FC = () => {
   const fetchSuspiciousUsers = async () => {
     try {
       const response = await axios.get('http://localhost:8000/api/admin/middleman/suspicious/', {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
       });
       setSuspiciousUsers(response.data);
     } catch (error) {
@@ -62,7 +62,7 @@ const MiddlemanMonitor: React.FC = () => {
       await axios.post(
         `http://localhost:8000/api/admin/middleman/flags/${flagId}/resolve/`,
         { action, notes: resolutionNotes },
-        { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }
+        { headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` } }
       );
       setSelectedFlag(null);
       setResolutionNotes('');
