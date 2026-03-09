@@ -848,6 +848,8 @@ const ProductManagement: React.FC = () => {
                     </p>
                   </div>
                 )}
+
+                
               </div>
             </div>
             <div className="flex gap-4 mt-6">

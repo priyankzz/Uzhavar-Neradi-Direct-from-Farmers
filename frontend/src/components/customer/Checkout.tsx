@@ -3,12 +3,14 @@
  * Copy to: frontend/src/components/customer/Checkout.tsx
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../hooks/useCart';
 import { useLanguage } from '../../hooks/useLanguage';
 import { useAuth } from '../../hooks/useAuth';
 import axios from 'axios';
+
+
 
 const Checkout: React.FC = () => {
   const { items, getCartTotal, clearCart } = useCart();
@@ -26,6 +28,13 @@ const Checkout: React.FC = () => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [farmerPaymentInfo, setFarmerPaymentInfo] = useState({
+  accepts_online_payment: false,
+  accepts_cod: false,
+  upi_id: '',
+  qr_code_image: '',
+  has_payment_info: false
+});
 
   const subtotal = getCartTotal();
   const deliveryFee = 50;
@@ -80,6 +89,44 @@ const Checkout: React.FC = () => {
       setLoading(false);
     }
   };
+
+  // Instead of fetching per product, fetch farmer's payment info
+useEffect(() => {
+  const fetchFarmerPaymentInfo = async () => {
+    if (items.length === 0) return;
+    
+    // Get unique farmer IDs
+    const farmerIds = Array.from(new Set(items.map(item => item.farmer_id)));
+    
+    // For simplicity, assume all items from same farmer
+    // In production, handle multiple farmers
+    const farmerId = farmerIds[0];
+    
+    try {
+      const response = await axios.get(
+        `http://localhost:8000/api/auth/farmer/profile/?user_id=${farmerId}`,
+        {
+          headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
+        }
+      );
+      
+      const farmer = response.data;
+      setFarmerPaymentInfo({
+        accepts_online_payment: farmer.accepts_online_payment,
+        accepts_cod: farmer.accepts_cod,
+        upi_id: farmer.upi_id,
+        qr_code_image: farmer.qr_code_image,
+        has_payment_info: farmer.has_payment_info
+      });
+    } catch (error) {
+      console.error('Failed to fetch farmer info:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchFarmerPaymentInfo();
+}, [items]);
 
   return (
     <div className="max-w-6xl mx-auto">

@@ -39,7 +39,7 @@ const FarmerDashboard: React.FC = () => {
   const { user } = useAuth();
   const { language } = useLanguage();
   const isTamil = language === 'ta';
-  
+
   const [stats, setStats] = useState<DashboardStats>({
     totalProducts: 0,
     totalOrders: 0,
@@ -55,8 +55,8 @@ const FarmerDashboard: React.FC = () => {
   // Tamil translations
   const t = {
     welcome: isTamil ? 'மீண்டும் வரவேற்கிறோம்' : 'Welcome back',
-    manageFarm: isTamil 
-      ? 'உங்கள் பொருட்களை நிர்வகிக்கவும், ஆர்டர்களை கண்காணிக்கவும், தேவை நுண்ணறிவுகளைப் பார்க்கவும்.' 
+    manageFarm: isTamil
+      ? 'உங்கள் பொருட்களை நிர்வகிக்கவும், ஆர்டர்களை கண்காணிக்கவும், தேவை நுண்ணறிவுகளைப் பார்க்கவும்.'
       : 'Manage your products, track orders, and view demand insights here.',
     totalProducts: isTamil ? 'மொத்த பொருட்கள்' : 'Total Products',
     totalOrders: isTamil ? 'மொத்த ஆர்டர்கள்' : 'Total Orders',
@@ -90,7 +90,7 @@ const FarmerDashboard: React.FC = () => {
         params: { farmer: user?.id },
         headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
       });
-      
+
       const ordersResponse = await axios.get('http://localhost:8000/api/orders/', {
         headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
       });
@@ -99,7 +99,7 @@ const FarmerDashboard: React.FC = () => {
       const orders = ordersResponse.data.results || ordersResponse.data;
 
       const today = new Date().toDateString();
-      const todayOrders = orders.filter((o: any) => 
+      const todayOrders = orders.filter((o: any) =>
         new Date(o.created_at).toDateString() === today
       );
 
@@ -235,6 +235,11 @@ const FarmerDashboard: React.FC = () => {
             <p className="text-gray-600 text-sm">{t.addProductDesc}</p>
           </div>
         </Link>
+        
+        <Link to="/farmer/payment-info" className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition text-center">
+          <div className="text-4xl mb-2">💰</div>
+          <p className="font-medium">{isTamil ? 'கட்டணத் தகவல்' : 'Payment Info'}</p>
+        </Link>
 
         <Link to="/farmer/orders" className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition flex items-center">
           <div className="text-4xl mr-4">📋</div>
@@ -251,6 +256,7 @@ const FarmerDashboard: React.FC = () => {
             <p className="text-gray-600 text-sm">{t.demandInsightsDesc}</p>
           </div>
         </Link>
+
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -278,7 +284,7 @@ const FarmerDashboard: React.FC = () => {
                   </div>
                   <div className="flex justify-between items-center mt-2">
                     <span className="font-semibold">₹{order.total_amount}</span>
-                    <Link 
+                    <Link
                       to={`/farmer/orders/${order.id}`}
                       className="text-green-600 hover:text-green-700 text-sm"
                     >
@@ -296,7 +302,7 @@ const FarmerDashboard: React.FC = () => {
         {/* Top Products */}
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold mb-4">{t.topProducts}</h2>
-          
+
           {topProducts.length > 0 ? (
             <div className="space-y-3">
               {topProducts.map((product) => (
@@ -318,8 +324,8 @@ const FarmerDashboard: React.FC = () => {
           )}
 
           <div className="mt-4 pt-4 border-t">
-            <Link 
-              to="/farmer/insights" 
+            <Link
+              to="/farmer/insights"
               className="text-green-600 hover:text-green-700 text-sm flex items-center justify-center"
             >
               {t.viewAnalytics} →

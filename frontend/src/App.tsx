@@ -56,6 +56,7 @@ import ShippingInfo from './components/common/ShippingInfo';
 import ReturnsPolicy from './components/common/ReturnsPolicy';
 import TermsAndConditions from './components/common/TermsAndConditions';
 import PrivacyPolicy from './components/common/PrivacyPolicy';
+import PaymentInfo from './components/farmer/PaymentInfo';
 
 function App() {
   const { loading } = useAuth();
@@ -123,7 +124,12 @@ function App() {
               <DemandInsights />
             </ProtectedRoute>
           } />
-
+          <Route path="/farmer/payment-info" element={
+            <ProtectedRoute role="FARMER">
+              <PaymentInfo />
+            </ProtectedRoute>
+          } />
+          
           {/* Delivery Routes */}
           <Route path="/delivery" element={
             <ProtectedRoute role="DELIVERY">
