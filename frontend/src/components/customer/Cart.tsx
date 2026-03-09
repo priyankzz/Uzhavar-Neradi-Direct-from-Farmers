@@ -1,5 +1,5 @@
 /**
- * Cart Component with Dynamic Delivery Fee
+ * Cart Component - Fixed Total Calculation
  * Copy to: frontend/src/components/customer/Cart.tsx
  */
 
@@ -19,7 +19,7 @@ interface ProductDetails {
 const Cart: React.FC = () => {
   const { items, removeFromCart, updateQuantity, getCartTotal, getCartCount } = useCart();
   const { t } = useLanguage();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   
   const [deliveryFee, setDeliveryFee] = useState<number>(0);
@@ -31,53 +31,52 @@ const Cart: React.FC = () => {
   };
 
   // Fetch delivery fee based on products in cart
-  // Fetch delivery fee based on products in cart
-useEffect(() => {
-  const fetchDeliveryFees = async () => {
-    if (items.length === 0) return;
-    
-    setLoading(true);
-    try {
-      // Filter out items without farmer_id and get unique farmer IDs
-      const validItems = items.filter(item => item.farmer_id);
-      if (validItems.length === 0) {
-        setDeliveryFee(50); // Default fallback
+  useEffect(() => {
+    const fetchDeliveryFees = async () => {
+      if (items.length === 0) return;
+      
+      setLoading(true);
+      try {
+        // Filter out items without farmer_id
+        const validItems = items.filter(item => item.farmer_id);
+        if (validItems.length === 0) {
+          setDeliveryFee(50);
+          setLoading(false);
+          return;
+        }
+        
+        const farmerIds = Array.from(new Set(validItems.map(item => item.farmer_id)));
+        
+        const firstItem = validItems[0];
+        const response = await axios.get(`http://localhost:8000/api/products/${firstItem.product_id}/`);
+        const product = response.data;
+        
+        // ✅ Ensure numbers are treated as numbers
+        const subtotal = Number(getCartTotal());
+        
+        // Check if free delivery applies
+        if (product.free_delivery_min_amount && subtotal >= Number(product.free_delivery_min_amount)) {
+          setDeliveryFee(0);
+        } else {
+          setDeliveryFee(Number(product.delivery_fee) || 50);
+        }
+        
+        setFreeDeliveryMin(product.free_delivery_min_amount ? Number(product.free_delivery_min_amount) : null);
+      } catch (error) {
+        console.error('Failed to fetch delivery fee:', error);
+        setDeliveryFee(50);
+      } finally {
         setLoading(false);
-        return;
       }
-      
-      const farmerIds = Array.from(new Set(validItems.map(item => item.farmer_id)));
-      
-      // For now, use the first farmer's delivery fee (simplified)
-      // In a real app, you might want to handle multiple farmers
-      const firstItem = validItems[0];
-      const response = await axios.get(`http://localhost:8000/api/products/${firstItem.product_id}/`);
-      const product = response.data;
-      
-      const subtotal = getCartTotal();
-      
-      // Check if free delivery applies
-      if (product.free_delivery_min_amount && subtotal >= product.free_delivery_min_amount) {
-        setDeliveryFee(0);
-      } else {
-        setDeliveryFee(product.delivery_fee || 50); // Fallback to 50 if not set
-      }
-      
-      setFreeDeliveryMin(product.free_delivery_min_amount);
-    } catch (error) {
-      console.error('Failed to fetch delivery fee:', error);
-      setDeliveryFee(50); // Default fallback
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  fetchDeliveryFees();
-}, [items, getCartTotal]);
+    fetchDeliveryFees();
+  }, [items, getCartTotal]);
 
-  const subtotal = getCartTotal();
-  const tax = subtotal * 0.05;
-  const total = subtotal + deliveryFee + tax;
+  // ✅ Fix: Convert all values to numbers before calculations
+  const subtotal = Number(getCartTotal());
+  const tax = Number((subtotal * 0.05).toFixed(2));
+  const total = Number((subtotal + deliveryFee + tax).toFixed(2));
 
   const handleCheckout = () => {
     if (!isAuthenticated) {
@@ -128,7 +127,7 @@ useEffect(() => {
               {/* Product Details */}
               <div className="flex-1">
                 <h3 className="font-semibold">{item.name}</h3>
-                <p className="text-green-600 font-bold">₹{formatPrice(item.price)}</p>
+                <p className="text-green-600 font-bold">₹{formatPrice(Number(item.price))}</p>
               </div>
               
               {/* Quantity Controls */}
@@ -150,9 +149,11 @@ useEffect(() => {
                 </button>
               </div>
               
-              {/* Item Total */}
+              {/* Item Total - Fix calculation */}
               <div className="text-right min-w-[100px]">
-                <p className="font-semibold">₹{formatPrice(item.price * item.quantity)}</p>
+                <p className="font-semibold">
+                  ₹{formatPrice(Number(item.price) * Number(item.quantity))}
+                </p>
                 <button
                   onClick={() => removeFromCart(item.product_id)}
                   className="text-red-500 text-sm hover:text-red-700"
