@@ -3,9 +3,10 @@ Product views.
 Copy to: backend/products/views.py
 """
 
-from rest_framework import generics, permissions, filters, status
+from rest_framework import viewsets, generics, permissions, filters, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.decorators import action
 from django.db.models import Q
 from .models import Category, Product, ProductReview
 from .serializers import CategorySerializer, ProductSerializer, ProductReviewSerializer
@@ -17,21 +18,46 @@ class CategoryListView(generics.ListAPIView):
     serializer_class = CategorySerializer
     permission_classes = [permissions.AllowAny]
 
-class ProductListView(generics.ListAPIView):
-    """List all products with filtering"""
+class ProductViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for Product model - handles all CRUD operations
+    - GET /api/products/ - List all products
+    - POST /api/products/ - Create new product
+    - GET /api/products/{id}/ - Retrieve product
+    - PUT /api/products/{id}/ - Update product
+    - PATCH /api/products/{id}/ - Partial update
+    - DELETE /api/products/{id}/ - Delete product
+    - GET /api/products/?farmer=me - Filter by current farmer
+    """
     serializer_class = ProductSerializer
-    permission_classes = [permissions.AllowAny]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name_en', 'name_ta', 'description_en', 'description_ta']
     ordering_fields = ['price_per_unit', 'created_at', 'harvest_date']
     
+    def get_permissions(self):
+        """
+        Custom permissions based on action:
+        - List/Retrieve: Anyone
+        - Create/Update/Delete: Farmer only
+        """
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [IsFarmer()]
+        return [permissions.AllowAny()]
+    
     def get_queryset(self):
+        """Filter products based on query parameters"""
         print("="*50)
         print("GET QUERYSET CALLED")
         print(f"User authenticated: {self.request.user.is_authenticated}")
         print(f"User ID: {self.request.user.id if self.request.user.is_authenticated else 'Not logged in'}")
         
-        queryset = Product.objects.filter(is_active=True)
+        # Base queryset - only active products for non-owners
+        if self.action == 'list' and self.request.query_params.get('farmer') != 'me':
+            queryset = Product.objects.filter(is_active=True)
+        else:
+            # For owner views or specific queries, include inactive
+            queryset = Product.objects.all()
+            
         print(f"Initial queryset count: {queryset.count()}")
         
         # Filter by category
@@ -76,27 +102,58 @@ class ProductListView(generics.ListAPIView):
         print(f"Final queryset count: {queryset.count()}")
         print("="*50)
         return queryset
+    
+    def perform_create(self, serializer):
+        """Create new product - always active"""
+        print("🔥 Creating new product with is_active=True")
+        product = serializer.save(farmer=self.request.user, is_active=True)
+        print(f"✅ Product created: ID={product.id}, Name={product.name_en}, Active={product.is_active}")
+        return product
+    
+    def perform_update(self, serializer):
+        """Update product - preserve all fields"""
+        print(f"🔄 Updating product ID: {self.get_object().id}")
+        product = serializer.save()
+        print(f"✅ Product updated: {product.name_en}, Active: {product.is_active}")
+        return product
+    
+    def perform_destroy(self, instance):
+        """Delete product"""
+        print(f"🗑️ Deleting product: {instance.name_en} (ID: {instance.id})")
+        instance.delete()
+        print("✅ Product deleted successfully")
+    
+    @action(detail=False, methods=['get'], permission_classes=[permissions.AllowAny])
+    def my_products(self, request):
+        """Get products for the current farmer (alias for ?farmer=me)"""
+        if not request.user.is_authenticated:
+            return Response(
+                {'error': 'Authentication required'}, 
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        queryset = Product.objects.filter(farmer=request.user)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 class ProductDetailView(generics.RetrieveAPIView):
-    """Get single product details"""
+    """Legacy support: Get single product details"""
     queryset = Product.objects.filter(is_active=True)
     serializer_class = ProductSerializer
     permission_classes = [permissions.AllowAny]
 
 class ProductCreateView(generics.CreateAPIView):
-    """Create new product (Farmer only) - Auto-active"""
+    """Legacy support: Create new product (Farmer only)"""
     serializer_class = ProductSerializer
     permission_classes = [IsFarmer]
     
     def perform_create(self, serializer):
         print("🔥 Creating new product with is_active=True")
-        # Force is_active to True for all new products
         product = serializer.save(farmer=self.request.user, is_active=True)
         print(f"✅ Product created: ID={product.id}, Name={product.name_en}, Active={product.is_active}")
         return product
 
 class ProductUpdateView(generics.UpdateAPIView):
-    """Update product (Farmer only) - Preserves active status"""
+    """Legacy support: Update product (Farmer only)"""
     serializer_class = ProductSerializer
     permission_classes = [IsFarmer]
     
@@ -105,12 +162,11 @@ class ProductUpdateView(generics.UpdateAPIView):
     
     def perform_update(self, serializer):
         print(f"🔄 Updating product ID: {self.get_object().id}")
-        # Simply save - preserves all existing values including is_active
         product = serializer.save()
         print(f"✅ Product updated: {product.name_en}, Active: {product.is_active}")
 
 class ProductDeleteView(generics.DestroyAPIView):
-    """Delete product (Farmer only)"""
+    """Legacy support: Delete product (Farmer only)"""
     permission_classes = [IsFarmer]
     
     def get_queryset(self):

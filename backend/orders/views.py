@@ -108,6 +108,33 @@ class AssignDeliveryView(APIView):
             order = Order.objects.get(id=order_id, farmer=request.user)
             delivery_partner_id = request.data.get('delivery_partner_id')
             
+            # Create delivery assignment with commission info
+            assignment = DeliveryAssignment.objects.create(
+                order=order,
+                delivery_partner_id=delivery_partner_id,
+                assigned_by=request.user,
+                estimated_delivery_time=request.data.get('estimated_delivery_time'),
+                commission_amount=order.delivery_partner_commission,  # ✅ Store commission
+                commission_percent=order.farmer.farmer_profile.delivery_partner_commission_percent
+            )
+            
+            order.delivery_partner_id = delivery_partner_id
+            order.status = 'ASSIGNED'
+            order.assigned_at = timezone.now()
+            order.save()
+            
+            return Response(DeliveryAssignmentSerializer(assignment).data)
+        except Order.DoesNotExist:
+            return Response({'error': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+    """Assign delivery partner to order (Farmer only)"""
+    permission_classes = [IsFarmer]
+    
+    def post(self, request, order_id):
+        try:
+            order = Order.objects.get(id=order_id, farmer=request.user)
+            delivery_partner_id = request.data.get('delivery_partner_id')
+            
             # Create delivery assignment
             assignment = DeliveryAssignment.objects.create(
                 order=order,

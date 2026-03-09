@@ -113,6 +113,22 @@ class FarmerProfile(models.Model):
     pickup_available = models.BooleanField(default=True)
     farm_pickup_address = models.TextField(blank=True)
     estimated_delivery_days = models.IntegerField(default=1)
+
+    # Delivery settings for customers
+    delivery_fee = models.DecimalField(max_digits=10, decimal_places=2, default=50.00)
+    free_delivery_min_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    delivery_available = models.BooleanField(default=True)
+    pickup_available = models.BooleanField(default=True)
+    farm_pickup_address = models.TextField(blank=True)
+    estimated_delivery_days = models.IntegerField(default=1)
+    
+    # ✅ NEW: Delivery partner commission (percentage)
+    delivery_partner_commission_percent = models.DecimalField(
+        max_digits=5, 
+        decimal_places=2, 
+        default=10.00,
+        help_text="Percentage of delivery fee paid to delivery partner"
+    )
     
     def __str__(self):
         return f"{self.farm_name} - {self.user.email}"

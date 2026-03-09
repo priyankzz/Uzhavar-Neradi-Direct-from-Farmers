@@ -116,6 +116,33 @@ class DeliveryAssignment(models.Model):
     delivery_partner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='assignments', limit_choices_to={'role': 'DELIVERY'})
     assigned_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='assigned_deliveries')
     
+    # ✅ Commission fields
+    commission_percent = models.DecimalField(max_digits=5, decimal_places=2, default=10.00)
+    commission_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    assigned_at = models.DateTimeField(auto_now_add=True)
+    accepted_at = models.DateTimeField(blank=True, null=True)
+    rejected_at = models.DateTimeField(blank=True, null=True)
+    rejection_reason = models.TextField(blank=True, null=True)
+    
+    estimated_delivery_time = models.DateTimeField(blank=True, null=True)
+    
+    def __str__(self):
+        return f"{self.order.order_number} - {self.delivery_partner.username}"
+    
+    """Delivery assignment tracking"""
+    STATUS_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('ACCEPTED', 'Accepted'),
+        ('REJECTED', 'Rejected'),
+        ('COMPLETED', 'Completed'),
+    ]
+    
+    order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='delivery_assignment')
+    delivery_partner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='assignments', limit_choices_to={'role': 'DELIVERY'})
+    assigned_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='assigned_deliveries')
+    
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
     assigned_at = models.DateTimeField(auto_now_add=True)
     accepted_at = models.DateTimeField(blank=True, null=True)

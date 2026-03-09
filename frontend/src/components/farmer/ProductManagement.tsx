@@ -1,10 +1,10 @@
 /**
- * Product Management Component - Fixed Version
+ * Product Management Component - COMPLETELY FIXED with all translations
  * Copy to: frontend/src/components/farmer/ProductManagement.tsx
  */
 
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../services/api';
 import { useLanguage } from '../../hooks/useLanguage';
 import { useAuth } from '../../hooks/useAuth';
 import LoadingSpinner from '../common/LoadingSpinner';
@@ -36,7 +36,6 @@ interface Product {
   estimated_delivery_days: number;
   delivery_partner_required: boolean;
   delivery_partner_commission?: number;
-
 }
 
 interface Category {
@@ -46,13 +45,14 @@ interface Category {
 }
 
 const ProductManagement: React.FC = () => {
-  const { user } = useAuth();  // SINGLE declaration at the top
+  const { user } = useAuth();
   const { language } = useLanguage();
   const isTamil = language === 'ta';
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [connectionError, setConnectionError] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [formData, setFormData] = useState<Partial<Product>>({
@@ -85,8 +85,9 @@ const ProductManagement: React.FC = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // Tamil translations
+  // ✅ COMPLETE TRANSLATIONS - All keys used in JSX
   const t = {
+    // Page
     pageTitle: isTamil ? 'பொருட்கள் மேலாண்மை' : 'Product Management',
     addNew: isTamil ? 'புதிய பொருள் சேர்க்க' : 'Add New Product',
     cancel: isTamil ? 'ரத்து செய்' : 'Cancel',
@@ -98,7 +99,11 @@ const ProductManagement: React.FC = () => {
     addSuccess: isTamil ? 'பொருள் வெற்றிகரமாக சேர்க்கப்பட்டது!' : 'Product added successfully!',
     updateSuccess: isTamil ? 'பொருள் வெற்றிகரமாக புதுப்பிக்கப்பட்டது!' : 'Product updated successfully!',
     deleteConfirm: isTamil ? 'இந்த பொருளை நீக்க விரும்புகிறீர்களா?' : 'Are you sure you want to delete this product?',
-    noProducts: isTamil ? 'இதுவரை பொருட்கள் இல்லை. "புதிய பொருள் சேர்க்க" என்பதைக் கிளிக் செய்யவும்.' : 'No products yet. Click "Add New Product" to get started.',
+    noProducts: isTamil ? 'இதுவரை பொருட்கள் இல்லை.' : 'No products yet.',
+    connectionError: isTamil
+      ? 'சேவையகத்துடன் இணைக்க முடியவில்லை. பின்வருவனவற்றை சரிபார்க்கவும்:\n• Django சேவையகம் இயங்குகிறதா?\n• சேவையகம் சரியான போர்ட்டில் உள்ளதா?'
+      : 'Cannot connect to server. Please check:\n• Is Django server running?\n• Is it on the correct port?',
+    retry: isTamil ? 'மீண்டும் முயற்சி செய்' : 'Retry Connection',
 
     // Form fields
     nameEn: isTamil ? 'பெயர் (ஆங்கிலம்)' : 'Name (English)',
@@ -109,19 +114,32 @@ const ProductManagement: React.FC = () => {
     availableQty: isTamil ? 'கிடைக்கும் அளவு' : 'Available Quantity',
     minOrder: isTamil ? 'குறைந்தபட்ச ஆர்டர்' : 'Min Order Quantity',
     description: isTamil ? 'விளக்கம்' : 'Description',
-    organic: isTamil ? 'இயற்கை பொருள்' : 'Organic Product',
+    organic: isTamil ? 'இயற்கை பொருள்' : 'Organic',
     preorder: isTamil ? 'முன்-ஆர்டரை அனுமதி' : 'Allow Preorders',
     harvestDate: isTamil ? 'அறுவடை தேதி' : 'Harvest Date',
     images: isTamil ? 'படங்கள்' : 'Images',
     selectImages: isTamil ? 'படங்களை தேர்ந்தெடுக்கவும்' : 'Select Images',
 
     // Units
-    kg: isTamil ? 'கிலோ' : 'Kilogram',
+    kg: isTamil ? 'கிலோ' : 'Kg',
     gram: isTamil ? 'கிராம்' : 'Gram',
     dozen: isTamil ? 'டஜன்' : 'Dozen',
     piece: isTamil ? 'துண்டு' : 'Piece',
     bag: isTamil ? 'பை' : 'Bag',
     litre: isTamil ? 'லிட்டர்' : 'Litre',
+
+    // Delivery settings
+    deliverySettings: isTamil ? 'விநியோக அமைப்புகள்' : 'Delivery Settings',
+    deliveryAvailable: isTamil ? 'விநியோகம் கிடைக்குமா?' : 'Delivery Available?',
+    pickupAvailable: isTamil ? 'பண்ணையில் எடுத்துச் செல்லல் கிடைக்குமா?' : 'Pickup Available?',
+    pickupAddress: isTamil ? 'பண்ணை முகவரி' : 'Farm Pickup Address',
+    deliveryFee: isTamil ? 'விநியோக கட்டணம் (₹)' : 'Delivery Fee (₹)',
+    freeDeliveryMin: isTamil ? 'இலவச விநியோகத்திற்கான குறைந்தபட்ச தொகை' : 'Free Delivery Min Amount',
+    deliveryPartnerRequired: isTamil ? 'விநியோக கூட்டாளி தேவையா?' : 'Delivery Partner Required?',
+    deliveryPartnerCommission: isTamil ? 'விநியோக கூட்டாளி கமிஷன் (%)' : 'Delivery Partner Commission (%)',
+    estDeliveryDays: isTamil ? 'மதிப்பிடப்பட்ட விநியோக நாட்கள்' : 'Est. Delivery Days',
+    deliveryZones: isTamil ? 'விநியோக மண்டலங்கள்' : 'Delivery Zones',
+    zonePlaceholder: isTamil ? 'சென்னை, கோயம்புத்தூர்...' : 'Chennai, Coimbatore...',
 
     // Table headers
     product: isTamil ? 'பொருள்' : 'Product',
@@ -131,64 +149,56 @@ const ProductManagement: React.FC = () => {
     status: isTamil ? 'நிலை' : 'Status',
     actions: isTamil ? 'செயல்கள்' : 'Actions',
     active: isTamil ? 'செயலில்' : 'Active',
-    inactive: isTamil ? 'செயலற்று' : 'Inactive',
-    deliveryPartnerCommission: isTamil ? 'விநியோக கூட்டாளி கமிஷன் (%)' : 'Delivery Partner Commission (%)',
-    deliverySettings: isTamil ? 'விநியோக அமைப்புகள்' : 'Delivery Settings',
-    deliveryAvailable: isTamil ? 'விநியோகம் கிடைக்குமா?' : 'Delivery Available?',
-    deliveryZones: isTamil ? 'விநியோக மண்டலங்கள்' : 'Delivery Zones',
-    deliveryFee: isTamil ? 'விநியோக கட்டணம் (₹)' : 'Delivery Fee (₹)',
-    freeDeliveryMin: isTamil ? 'இலவச விநியோகத்திற்கான குறைந்தபட்ச தொகை' : 'Free Delivery Min Amount',
-    pickupAvailable: isTamil ? 'பண்ணையில் எடுத்துச் செல்லல் கிடைக்குமா?' : 'Farm Pickup Available?',
-    pickupAddress: isTamil ? 'பண்ணை முகவரி' : 'Farm Address',
-    estDeliveryDays: isTamil ? 'மதிப்பிடப்பட்ட விநியோக நாட்கள்' : 'Estimated Delivery Days',
-    deliveryPartnerRequired: isTamil ? 'விநியோக கூட்டாளி தேவையா?' : 'Delivery Partner Required?',
-    addZone: isTamil ? 'மண்டலத்தை சேர்க்க' : 'Add Zone',
-    zonePlaceholder: isTamil ? 'சென்னை, கோயம்புத்தூர்...' : 'Chennai, Coimbatore...'
+    inactive: isTamil ? 'செயலற்று' : 'Inactive'
   };
 
   useEffect(() => {
-    fetchProducts();
-    fetchCategories();
+    checkServerConnection();
   }, []);
+  const PLACEHOLDER_IMAGE = 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\' viewBox=\'0 0 100 100\'%3E%3Crect width=\'100\' height=\'100\' fill=\'%23f0f0f0\'/%3E%3Ctext x=\'50%%\' y=\'50%%\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23999\' font-size=\'50\'%3E📦%3C/text%3E%3C/svg%3E';
+  const checkServerConnection = async () => {
+    try {
+      await api.get('/api/products/', { timeout: 5000 });
+      setConnectionError(false);
+      fetchProducts();
+      fetchCategories();
+    } catch (error) {
+      console.error('Server connection failed:', error);
+      setConnectionError(true);
+      setLoading(false);
+    }
+  };
 
   const fetchProducts = async () => {
     try {
-      console.log('1. Starting to fetch products...');
-      console.log('2. Token exists:', !!sessionStorage.getItem('token'));
+      console.log('📦 Fetching products...');
 
-      const response = await axios.get('http://localhost:8000/api/products/', {
-        params: { farmer: 'me' },
-        headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
+      const response = await api.get('/api/products/', {
+        params: { farmer: 'me' }
       });
 
-      console.log('3. Full API Response:', response);
-      console.log('4. Response data:', response.data);
+      console.log('✅ Products fetched:', response.data);
 
-      // Handle both paginated and non-paginated responses
       const productsData = response.data.results || response.data;
-      console.log('5. Extracted products data:', productsData);
-      console.log('6. Is array?', Array.isArray(productsData));
-      console.log('7. Number of products:', productsData?.length || 0);
+      setProducts(Array.isArray(productsData) ? productsData : []);
+      setError('');
+    } catch (error: any) {
+      console.error('❌ Error fetching products:', error);
 
-      if (Array.isArray(productsData)) {
-        setProducts(productsData);
-        console.log('8. Products set to state:', productsData.length);
+      if (!error.response) {
+        setConnectionError(true);
+        setError(t.connectionError);
       } else {
-        console.log('8. Products data is not an array, setting empty array');
-        setProducts([]);
+        setError(isTamil ? 'பொருட்களை ஏற்ற முடியவில்லை' : 'Failed to fetch products');
       }
-    } catch (error) {
-      console.error('9. Error fetching products:', error);
-      setError(isTamil ? 'பொருட்களை ஏற்ற முடியவில்லை' : 'Failed to fetch products');
     } finally {
       setLoading(false);
-      console.log('10. Loading set to false');
     }
   };
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/api/products/categories/');
+      const response = await api.get('/api/products/categories/');
       const categoriesData = response.data.results || response.data || [];
       setCategories(Array.isArray(categoriesData) ? categoriesData : []);
     } catch (error) {
@@ -209,7 +219,6 @@ const ProductManagement: React.FC = () => {
       const files = Array.from(e.target.files);
       setImageFiles(files);
 
-      // Create preview URLs
       const previews = files.map(file => URL.createObjectURL(file));
       setImagePreviews(previews);
     }
@@ -219,7 +228,6 @@ const ProductManagement: React.FC = () => {
     const newFiles = [...imageFiles];
     const newPreviews = [...imagePreviews];
 
-    // Revoke the object URL to avoid memory leaks
     URL.revokeObjectURL(newPreviews[index]);
 
     newFiles.splice(index, 1);
@@ -230,130 +238,113 @@ const ProductManagement: React.FC = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setSubmitting(true);
-  setError('');
-  setSuccess('');
+    e.preventDefault();
+    setSubmitting(true);
+    setError('');
+    setSuccess('');
 
-  try {
-    const formDataToSend = new FormData();
+    try {
+      const formDataToSend = new FormData();
 
-    console.log('🔥 Submitting form data:');
-    
-    // ✅ FIX: Add this loop to append all form fields
-    Object.keys(formData).forEach(key => {
-      const value = formData[key as keyof typeof formData];
-      if (value !== undefined && value !== null && value !== '') {
-        // Handle delivery_zones specially
-        if (key === 'delivery_zones') {
-          if (typeof value === 'string') {
-            const zonesArray = value.split(',').map(z => z.trim()).filter(z => z);
-            formDataToSend.append(key, JSON.stringify(zonesArray));
-          } else if (Array.isArray(value)) {
-            formDataToSend.append(key, JSON.stringify(value));
+      Object.keys(formData).forEach(key => {
+        const value = formData[key as keyof typeof formData];
+        if (value !== undefined && value !== null && value !== '') {
+          if (key === 'delivery_zones') {
+            if (typeof value === 'string') {
+              const zonesArray = value.split(',').map(z => z.trim()).filter(z => z);
+              formDataToSend.append(key, JSON.stringify(zonesArray));
+            } else if (Array.isArray(value)) {
+              formDataToSend.append(key, JSON.stringify(value));
+            }
+          } else {
+            formDataToSend.append(key, String(value));
           }
-        } else {
-          formDataToSend.append(key, String(value));
         }
+      });
+
+      imageFiles.forEach(file => {
+        formDataToSend.append('images', file);
+      });
+
+      let response;
+      if (editingProduct) {
+        console.log('📝 Updating product ID:', editingProduct.id);
+        response = await api.put(
+          `/api/products/${editingProduct.id}/`,
+          formDataToSend,
+          {
+            headers: { 'Content-Type': 'multipart/form-data' }
+          }
+        );
+      } else {
+        console.log('➕ Creating new product');
+        response = await api.post(
+          '/api/products/create/',
+          formDataToSend,
+          {
+            headers: { 'Content-Type': 'multipart/form-data' }
+          }
+        );
       }
-    });
 
-    // Append images
-    imageFiles.forEach(file => {
-      formDataToSend.append('images', file);
-    });
-    
-    console.log('🔥 FormData entries:');
-    Array.from(formDataToSend.entries()).forEach(([key, value]) => {
-      console.log(key + ', ' + value);
-    });
+      if (response.data) {
+        await fetchProducts();
+        setSuccess(editingProduct ? t.updateSuccess : t.addSuccess);
+        resetForm();
+        setTimeout(() => setSuccess(''), 3000);
+      }
+    } catch (err: any) {
+      console.error('❌ Submit error:', err);
 
-    let response;
-    if (editingProduct) {
-      console.log('🔥 Updating product ID:', editingProduct.id);
-      response = await axios.put(
-        `http://localhost:8000/api/products/${editingProduct.id}/update/`,
-        formDataToSend,
-        {
-          headers: {
-            'Authorization': `Bearer ${sessionStorage.getItem('token')}`,
-            'Content-Type': 'multipart/form-data'
-          }
-        }
-      );
-    } else {
-      response = await axios.post(
-        'http://localhost:8000/api/products/create/',
-        formDataToSend,
-        {
-          headers: {
-            'Authorization': `Bearer ${sessionStorage.getItem('token')}`,
-            'Content-Type': 'multipart/form-data'
-          }
-        }
-      );
+      if (!err.response) {
+        setConnectionError(true);
+        setError(t.connectionError);
+      } else {
+        setError(err.response?.data?.message || (isTamil ? 'பொருளை சேமிக்க முடியவில்லை' : 'Failed to save product'));
+      }
+    } finally {
+      setSubmitting(false);
     }
-
-    if (response.data) {
-      await fetchProducts();
-      setSuccess(editingProduct ? t.updateSuccess : t.addSuccess);
-      resetForm();
-      setTimeout(() => setSuccess(''), 3000);
-    }
-  } catch (err: any) {
-    console.error('🔥 Full error:', err);
-    console.error('🔥 Error response:', err.response?.data);
-    console.error('🔥 Error status:', err.response?.status);
-    console.error('🔥 Error headers:', err.response?.headers);
-    console.error('Failed to save product:', err);
-    setError(err.response?.data?.message || (isTamil ? 'பொருளை சேமிக்க முடியவில்லை' : 'Failed to save product'));
-  } finally {
-    setSubmitting(false);
-  }
-};
+  };
 
   const handleEdit = (product: Product) => {
-  setEditingProduct(product);
-  setFormData({
-    name_en: product.name_en,
-    name_ta: product.name_ta,
-    description_en: product.description_en,
-    description_ta: product.description_ta,
-    price_per_unit: product.price_per_unit,
-    unit: product.unit,
-    available_quantity: product.available_quantity,
-    min_order_quantity: product.min_order_quantity,
-    is_organic: product.is_organic,
-    category: product.category,
-    preorder_available: product.preorder_available,
-    preorder_cutoff_hours: product.preorder_cutoff_hours,
-    harvest_date: product.harvest_date,
-    is_active: product.is_active,
-    
-    // Add all delivery fields
-    delivery_available: product.delivery_available,
-    delivery_zones: product.delivery_zones || [],
-    delivery_fee: product.delivery_fee,
-    free_delivery_min_amount: product.free_delivery_min_amount,
-    pickup_available: product.pickup_available,
-    farm_pickup_address: product.farm_pickup_address || '',
-    estimated_delivery_days: product.estimated_delivery_days,
-    delivery_partner_required: product.delivery_partner_required,
-    delivery_partner_commission: product.delivery_partner_commission
-  });
-  setImagePreviews(product.images || []);
-  setImageFiles([]);
-  setShowForm(true);
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-};
+    setEditingProduct(product);
+    setFormData({
+      name_en: product.name_en,
+      name_ta: product.name_ta,
+      description_en: product.description_en,
+      description_ta: product.description_ta,
+      price_per_unit: product.price_per_unit,
+      unit: product.unit,
+      available_quantity: product.available_quantity,
+      min_order_quantity: product.min_order_quantity,
+      is_organic: product.is_organic,
+      category: product.category,
+      preorder_available: product.preorder_available,
+      preorder_cutoff_hours: product.preorder_cutoff_hours,
+      harvest_date: product.harvest_date,
+      is_active: product.is_active,
+      delivery_available: product.delivery_available,
+      delivery_zones: product.delivery_zones || [],
+      delivery_fee: product.delivery_fee,
+      free_delivery_min_amount: product.free_delivery_min_amount,
+      pickup_available: product.pickup_available,
+      farm_pickup_address: product.farm_pickup_address || '',
+      estimated_delivery_days: product.estimated_delivery_days,
+      delivery_partner_required: product.delivery_partner_required,
+      delivery_partner_commission: product.delivery_partner_commission
+    });
+    setImagePreviews(product.images || []);
+    setImageFiles([]);
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const handleDelete = async (productId: number) => {
     if (!window.confirm(t.deleteConfirm)) return;
 
     try {
-      await axios.delete(`http://localhost:8000/api/products/${productId}/delete/`, {
-        headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
-      });
+      await api.delete(`/api/products/${productId}/`);
       await fetchProducts();
       setSuccess(isTamil ? 'பொருள் நீக்கப்பட்டது' : 'Product deleted');
       setTimeout(() => setSuccess(''), 3000);
@@ -365,12 +356,9 @@ const ProductManagement: React.FC = () => {
 
   const handleToggleActive = async (product: Product) => {
     try {
-      await axios.patch(
-        `http://localhost:8000/api/products/${product.id}/update/`,
-        { is_active: !product.is_active },
-        {
-          headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
-        }
+      await api.patch(
+        `/api/products/${product.id}/`,
+        { is_active: !product.is_active }
       );
       await fetchProducts();
     } catch (error) {
@@ -395,7 +383,6 @@ const ProductManagement: React.FC = () => {
       harvest_date: null
     });
 
-    // Clean up preview URLs
     imagePreviews.forEach(url => URL.revokeObjectURL(url));
 
     setImageFiles([]);
@@ -423,6 +410,36 @@ const ProductManagement: React.FC = () => {
 
   if (loading) {
     return <LoadingSpinner fullScreen />;
+  }
+
+  if (connectionError) {
+    return (
+      <div className="max-w-6xl mx-auto text-center py-12">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-8">
+          <div className="text-6xl mb-4">🔌</div>
+          <h2 className="text-2xl font-semibold text-red-700 mb-4">
+            {isTamil ? 'இணைப்பு பிழை' : 'Connection Error'}
+          </h2>
+          <p className="text-gray-600 mb-6 whitespace-pre-line">{t.connectionError}</p>
+          <div className="space-y-4 text-left bg-white p-4 rounded-lg mb-6">
+            <p className="font-semibold">Debug Steps:</p>
+            <ol className="list-decimal list-inside space-y-2 text-gray-600">
+              <li>Open Command Prompt and run: <code className="bg-gray-100 px-2 py-1 rounded">python manage.py runserver</code></li>
+              <li>Look for: <code className="bg-green-100 text-green-800 px-2 py-1 rounded">Development server is running at http://127.0.0.1:8000/</code></li>
+              <li>Open browser and go to: <a href="http://127.0.0.1:8000/api/products/" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">http://127.0.0.1:8000/api/products/</a></li>
+              <li>If you see JSON data, Django is working</li>
+              <li>Temporarily disable Windows Firewall/Defender</li>
+            </ol>
+          </div>
+          <button
+            onClick={checkServerConnection}
+            className="btn-primary px-8"
+          >
+            {t.retry}
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -686,6 +703,7 @@ const ProductManagement: React.FC = () => {
                 )}
               </div>
             </div>
+
             {/* Delivery Settings Section */}
             <div className="md:col-span-2 border-t pt-6 mt-4">
               <h3 className="text-lg font-semibold mb-4">{t.deliverySettings}</h3>
@@ -848,10 +866,9 @@ const ProductManagement: React.FC = () => {
                     </p>
                   </div>
                 )}
-
-                
               </div>
             </div>
+
             <div className="flex gap-4 mt-6">
               <button
                 type="submit"
@@ -893,13 +910,15 @@ const ProductManagement: React.FC = () => {
               <tr key={product.id} className="border-t hover:bg-gray-50">
                 <td className="px-4 py-3">
                   <div className="flex items-center">
-                    {product.images && product.images[0] && (
-                      <img
-                        src={product.images[0]}
-                        alt={getProductName(product)}
-                        className="w-10 h-10 object-cover rounded mr-3"
-                      />
-                    )}
+                    <img
+                      src={product.images && product.images[0] ? product.images[0] : PLACEHOLDER_IMAGE}
+                      alt={getProductName(product)}
+                      className="w-10 h-10 object-cover rounded mr-3"
+                      onError={(e) => {
+                        // If image fails to load, replace with placeholder
+                        e.currentTarget.src = PLACEHOLDER_IMAGE;
+                      }}
+                    />
                     <div>
                       <p className="font-medium">{getProductName(product)}</p>
                       <p className="text-xs text-gray-500">{product.name_en}</p>
