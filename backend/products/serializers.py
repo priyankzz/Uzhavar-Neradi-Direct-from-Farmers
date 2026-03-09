@@ -42,7 +42,19 @@ class ProductSerializer(serializers.ModelSerializer):
             'farm_pickup_address',
             'estimated_delivery_days',
             'delivery_partner_required',
-            'delivery_partner_commission'
+            'delivery_partner_commission',
+             # Payment fields
+            'accepts_online_payment',
+            'upi_id',
+            'bank_account_details',
+            'qr_code_image',
+            'accepts_cod',
+             
+            # Delivery fields
+            'delivery_available',
+            'pickup_available',
+            'farm_pickup_address',
+            'pickup_instructions',
         ]
         read_only_fields = ['created_at', 'updated_at', 'farmer']
     

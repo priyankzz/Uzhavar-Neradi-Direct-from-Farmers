@@ -78,6 +78,25 @@ class Product(models.Model):
     delivery_partner_required = models.BooleanField(default=True)
     delivery_partner_commission = models.DecimalField(max_digits=5, decimal_places=2, default=30.00)
     
+    # Delivery/Pickup options
+    delivery_available = models.BooleanField(default=True)
+    pickup_available = models.BooleanField(default=True)
+    farm_pickup_address = models.TextField(blank=True)
+    pickup_instructions = models.TextField(blank=True)
+
+     
+    # Payment settings
+    accepts_online_payment = models.BooleanField(default=True)
+    upi_id = models.CharField(max_length=100, blank=True, null=True, 
+                              help_text="UPI ID for direct payment (e.g., farmer@okhdfcbank)")
+    bank_account_details = models.JSONField(default=dict, blank=True,
+                                           help_text="Bank account details for payment")
+    qr_code_image = models.ImageField(upload_to='qr_codes/', blank=True, null=True)
+
+    # For COD
+    accepts_cod = models.BooleanField(default=True)
+    
+    
     
     def __str__(self):
         return f"{self.name_en} - {self.farmer.username}"

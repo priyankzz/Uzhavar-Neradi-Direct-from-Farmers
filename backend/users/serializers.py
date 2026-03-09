@@ -92,15 +92,19 @@ class OTPVerifySerializer(serializers.Serializer):
         return data
 
 class FarmerProfileSerializer(serializers.ModelSerializer):
-    """Farmer Profile Serializer"""
+    """Farmer Profile Serializer with Payment Info"""
     user_email = serializers.ReadOnlyField(source='user.email')
     username = serializers.ReadOnlyField(source='user.username')
+    has_payment_info = serializers.ReadOnlyField()
     
     class Meta:
         model = FarmerProfile
         fields = '__all__'
-        read_only_fields = ['is_verified', 'verification_status', 'verified_by', 'verified_at']
-
+        read_only_fields = [
+            'is_verified', 'verification_status', 'verified_by', 
+            'verified_at', 'payment_info_verified', 'payment_info_verified_at',
+            'created_at', 'updated_at'
+        ]
 class CustomerProfileSerializer(serializers.ModelSerializer):
     """Customer Profile Serializer"""
     class Meta:

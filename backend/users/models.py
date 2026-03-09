@@ -62,7 +62,7 @@ def sync_superuser(sender, instance, created, **kwargs):
             )
 
 class FarmerProfile(models.Model):
-    """Farmer Profile Model"""
+    """Farmer Profile Model with Payment Info"""
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='farmer_profile')
     farm_name = models.CharField(max_length=200)
     farm_address = models.TextField()
@@ -80,6 +80,20 @@ class FarmerProfile(models.Model):
     aadhaar_doc = models.FileField(upload_to='documents/aadhaar/')
     land_doc = models.FileField(upload_to='documents/land/')
     
+    # Payment Information - Added after verification
+    accepts_online_payment = models.BooleanField(default=False)
+    upi_id = models.CharField(max_length=100, blank=True, null=True)
+    bank_name = models.CharField(max_length=100, blank=True, null=True)
+    account_number = models.CharField(max_length=50, blank=True, null=True)
+    ifsc_code = models.CharField(max_length=20, blank=True, null=True)
+    account_holder_name = models.CharField(max_length=200, blank=True, null=True)
+    qr_code_image = models.ImageField(upload_to='farmer_qr_codes/', blank=True, null=True)
+    accepts_cod = models.BooleanField(default=True)
+    
+    # Payment info verification status
+    payment_info_verified = models.BooleanField(default=False)
+    payment_info_verified_at = models.DateTimeField(blank=True, null=True)
+    
     # Verification status
     is_verified = models.BooleanField(default=False)
     verification_status = models.CharField(max_length=20, default='PENDING', choices=[
@@ -96,7 +110,12 @@ class FarmerProfile(models.Model):
     
     def __str__(self):
         return f"{self.farm_name} - {self.user.email}"
-
+    
+    @property
+    def has_payment_info(self):
+        """Check if farmer has payment information set up"""
+        return bool(self.upi_id or (self.account_number and self.ifsc_code))
+    
 class CustomerProfile(models.Model):
     """Customer Profile Model"""
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='customer_profile')
