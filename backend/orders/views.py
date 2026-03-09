@@ -51,6 +51,19 @@ class CreateOrderView(generics.CreateAPIView):
     
     def perform_create(self, serializer):
         serializer.save()
+    
+    def get_serializer_context(self):
+        """Add request to serializer context"""
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+    
+    """Create new order"""
+    serializer_class = CreateOrderSerializer
+    permission_classes = [IsAuthenticated] 
+    
+    def perform_create(self, serializer):
+        serializer.save()
 
 class UpdateOrderStatusView(APIView):
     """Update order status (Farmer only)"""

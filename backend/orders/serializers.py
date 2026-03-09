@@ -44,6 +44,61 @@ class CreateOrderSerializer(serializers.ModelSerializer):
         items_data = validated_data.pop('items')
         validated_data['customer'] = self.context['request'].user
         
+        # Calculate totals
+        subtotal = 0
+        farmer = None
+        
+        for item in items_data:
+            product = item['product']
+            subtotal += product.price_per_unit * item['quantity']
+            
+            # Get farmer from first product
+            if not farmer:
+                farmer = product.farmer
+        
+        validated_data['subtotal'] = subtotal
+        validated_data['farmer'] = farmer
+        
+        # ✅ FIX: Get actual delivery fee from farmer's profile
+        try:
+            from users.models import FarmerProfile
+            farmer_profile = FarmerProfile.objects.get(user=farmer)
+            delivery_fee = farmer_profile.delivery_fee
+        except FarmerProfile.DoesNotExist:
+            # Fallback to default if profile doesn't exist
+            delivery_fee = 50.00
+            print(f"⚠️ Warning: Farmer {farmer.id} has no profile, using default delivery fee")
+        
+        validated_data['delivery_fee'] = delivery_fee
+        validated_data['tax'] = subtotal * 0.05  # 5% tax
+        validated_data['total_amount'] = validated_data['subtotal'] + validated_data['delivery_fee'] + validated_data['tax']
+        
+        order = Order.objects.create(**validated_data)
+        
+        # Create order items
+        for item in items_data:
+            OrderItem.objects.create(
+                order=order,
+                product=item['product'],
+                quantity=item['quantity'],
+                price_per_unit=item['product'].price_per_unit
+            )
+        
+        return order
+    
+    """Serializer for creating orders"""
+    items = serializers.ListField(write_only=True)
+    
+    class Meta:
+        model = Order
+        fields = ['order_type', 'payment_method', 'delivery_address', 
+                 'delivery_latitude', 'delivery_longitude', 
+                 'delivery_instructions', 'scheduled_date', 'items']
+    
+    def create(self, validated_data):
+        items_data = validated_data.pop('items')
+        validated_data['customer'] = self.context['request'].user
+        
         # Calculate totals (simplified)
         subtotal = 0
         for item in items_data:

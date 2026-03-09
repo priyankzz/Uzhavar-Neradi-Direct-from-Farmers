@@ -30,48 +30,52 @@ const Cart: React.FC = () => {
     return Number(price).toFixed(2);
   };
 
-  // Fetch delivery fee based on products in cart
-  useEffect(() => {
-    const fetchDeliveryFees = async () => {
-      if (items.length === 0) return;
-      
-      setLoading(true);
-      try {
-        // Filter out items without farmer_id
-        const validItems = items.filter(item => item.farmer_id);
-        if (validItems.length === 0) {
-          setDeliveryFee(50);
-          setLoading(false);
-          return;
-        }
-        
-        const farmerIds = Array.from(new Set(validItems.map(item => item.farmer_id)));
-        
-        const firstItem = validItems[0];
-        const response = await axios.get(`http://localhost:8000/api/products/${firstItem.product_id}/`);
-        const product = response.data;
-        
-        // ✅ Ensure numbers are treated as numbers
-        const subtotal = Number(getCartTotal());
-        
-        // Check if free delivery applies
-        if (product.free_delivery_min_amount && subtotal >= Number(product.free_delivery_min_amount)) {
-          setDeliveryFee(0);
-        } else {
-          setDeliveryFee(Number(product.delivery_fee) || 50);
-        }
-        
-        setFreeDeliveryMin(product.free_delivery_min_amount ? Number(product.free_delivery_min_amount) : null);
-      } catch (error) {
-        console.error('Failed to fetch delivery fee:', error);
-        setDeliveryFee(50);
-      } finally {
-        setLoading(false);
-      }
-    };
+// Fetch delivery fee whenever cart items change
 
-    fetchDeliveryFees();
-  }, [items, getCartTotal]);
+useEffect(() => {
+  const fetchDeliveryFees = async () => {
+    if (items.length === 0) return;
+    
+    setLoading(true);
+    try {
+      const validItems = items.filter(item => item.farmer_id);
+      if (validItems.length === 0) {
+        setDeliveryFee(50);
+        setLoading(false);
+        return;
+      }
+      
+      const farmerIds = Array.from(new Set(validItems.map(item => item.farmer_id)));
+      const farmerId = farmerIds[0];
+      
+      // ✅ NEW: Use public endpoint - NO AUTH NEEDED!
+      const response = await axios.get(
+        `http://localhost:8000/api/auth/farmer/delivery-info/${farmerId}/`
+      );
+      
+      const farmer = response.data;
+      console.log('Farmer delivery info:', farmer);
+      
+      const subtotal = Number(getCartTotal());
+      
+      // Check if free delivery applies
+      if (farmer.free_delivery_min_amount && subtotal >= Number(farmer.free_delivery_min_amount)) {
+        setDeliveryFee(0);
+      } else {
+        setDeliveryFee(Number(farmer.delivery_fee) || 50);
+      }
+      
+      setFreeDeliveryMin(farmer.free_delivery_min_amount ? Number(farmer.free_delivery_min_amount) : null);
+    } catch (error: any) {
+      console.error('Failed to fetch delivery fee:', error);
+      setDeliveryFee(50);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchDeliveryFees();
+}, [items, getCartTotal]);
 
   // ✅ Fix: Convert all values to numbers before calculations
   const subtotal = Number(getCartTotal());

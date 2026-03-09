@@ -5,7 +5,7 @@ Copy to: backend/users/serializers.py
 
 from rest_framework import serializers
 from django.contrib.auth import authenticate
-from .models import User, FarmerProfile, CustomerProfile, DeliveryPartnerProfile
+from .models import User, FarmerProfile, CustomerProfile, DeliveryPartnerProfile, Notification, UserActivity
 
 class UserSerializer(serializers.ModelSerializer):
     """Basic User Serializer"""
@@ -118,3 +118,27 @@ class DeliveryPartnerProfileSerializer(serializers.ModelSerializer):
         model = DeliveryPartnerProfile
         fields = '__all__'
         read_only_fields = ['total_deliveries', 'rating', 'is_verified', 'verification_status']
+
+# ============================================================================
+# NOTIFICATION SERIALIZERS - Add at the end of the file
+# ============================================================================
+
+class NotificationSerializer(serializers.ModelSerializer):
+    """Notification Serializer"""
+    time_ago = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Notification
+        fields = ['id', 'type', 'title', 'message', 'data', 'is_read', 'created_at', 'time_ago']
+        read_only_fields = ['id', 'created_at']
+    
+    def get_time_ago(self, obj):
+        from django.utils.timesince import timesince
+        return timesince(obj.created_at)
+
+class UserActivitySerializer(serializers.ModelSerializer):
+    """User Activity Serializer"""
+    class Meta:
+        model = UserActivity
+        fields = '__all__'
+        read_only_fields = ['created_at']

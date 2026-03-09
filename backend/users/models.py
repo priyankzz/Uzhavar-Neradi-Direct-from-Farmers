@@ -104,9 +104,15 @@ class FarmerProfile(models.Model):
     rejection_reason = models.TextField(blank=True, null=True)
     verified_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='verified_farmers')
     verified_at = models.DateTimeField(blank=True, null=True)
-    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    # Add these new fields
+    delivery_fee = models.DecimalField(max_digits=10, decimal_places=2, default=50.00)
+    free_delivery_min_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    delivery_available = models.BooleanField(default=True)
+    pickup_available = models.BooleanField(default=True)
+    farm_pickup_address = models.TextField(blank=True)
+    estimated_delivery_days = models.IntegerField(default=1)
     
     def __str__(self):
         return f"{self.farm_name} - {self.user.email}"
@@ -169,3 +175,77 @@ class DeliveryPartnerProfile(models.Model):
     
     def __str__(self):
         return f"Delivery: {self.user.email} - {self.vehicle_type}"
+    
+
+class Notification(models.Model):
+    """User Notifications Model"""
+    NOTIFICATION_TYPES = [
+        ('WELCOME', 'Welcome'),
+        ('OTP', 'OTP Verification'),
+        ('VERIFICATION', 'Verification'),
+        ('PROFILE', 'Profile Update'),
+        ('ORDER', 'Order Update'),
+        ('PAYMENT', 'Payment'),
+        ('DELIVERY', 'Delivery'),
+        ('PROMO', 'Promotional'),
+        ('ALERT', 'Alert'),
+        ('REMINDER', 'Reminder'),
+        ('ADMIN_ALERT', 'Admin Alert'),
+        ('SYSTEM', 'System')
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES)
+    title = models.CharField(max_length=255)
+    message = models.TextField()
+    data = models.JSONField(default=dict, blank=True)
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    read_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['user', 'is_read']),
+        ]
+    
+    def save(self, *args, **kwargs):
+        if self.is_read and not self.read_at:
+            self.read_at = timezone.now()
+        super().save(*args, **kwargs)
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.title}"
+
+class UserActivity(models.Model):
+    """Track user activities for audit"""
+    ACTIVITY_TYPES = [
+        ('LOGIN', 'Login'),
+        ('LOGOUT', 'Logout'),
+        ('PROFILE_VIEW', 'Profile View'),
+        ('PROFILE_UPDATE', 'Profile Update'),
+        ('ORDER_VIEW', 'Order View'),
+        ('ORDER_CREATE', 'Order Create'),
+        ('PAYMENT', 'Payment'),
+        ('SEARCH', 'Search'),
+        ('EXPORT', 'Export'),
+        ('ADMIN_ACTION', 'Admin Action')
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='activities')
+    activity_type = models.CharField(max_length=20, choices=ACTIVITY_TYPES)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['activity_type', '-created_at']),
+        ]
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.activity_type} at {self.created_at}"

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #2e7d32; color: white; padding: 20px; text-align: center; }
+        .content { padding: 20px; background: #f5f5f5; }
+        .button { 
+            background: #2e7d32; 
+            color: white; 
+            padding: 12px 24px; 
+            text-decoration: none; 
+            border-radius: 5px;
+            display: inline-block;
+        }
+        .footer { text-align: center; padding: 20px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Welcome to Uzhavar Neradi!</h1>
+        </div>
+        <div class="content">
+            <h2>Hello {{ user.username }},</h2>
+            <p>Thank you for registering as a farmer on Uzhavar Neradi! We're excited to have you join our community of farmers.</p>
+            
+            <h3>What's Next?</h3>
+            <ul>
+                <li>✅ Your profile is under verification (24-48 hours)</li>
+                <li>🌾 Start adding your products while you wait</li>
+                <li>💳 Set up your payment details to receive payments</li>
+                <li>📱 Download our farmer app for real-time updates</li>
+            </ul>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{ dashboard_url }}" class="button">Go to Farmer Dashboard</a>
+            </div>
+            
+            <h3>Farm Details:</h3>
+            <p>
+                <strong>Farm Name:</strong> {{ profile.farm_name }}<br>
+                <strong>Farming Type:</strong> {{ profile.get_farming_type_display }}<br>
+                <strong>Farm Size:</strong> {{ profile.farm_size }} acres<br>
+                <strong>Status:</strong> {{ profile.verification_status }}
+            </p>
+            
+            <p>Need help? Contact our support team at <a href="mailto:{{ support_email }}">{{ support_email }}</a></p>
+        </div>
+        <div class="footer">
+            <p>&copy; {{ year }} Uzhavar Neradi. All rights reserved.</p>
+            <p>Connecting Farmers Directly to Consumers</p>
+        </div>
+    </div>
+</body>
+</html>
