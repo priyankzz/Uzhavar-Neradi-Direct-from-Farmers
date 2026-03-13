@@ -36,3 +36,9 @@ INFO 2026-03-13 14:30:02,326 views 106320 139857616697024 Email sent to praveen2
 INFO 2026-03-13 14:30:02,336 views 106320 139857616697024 Notification created for user 2: OTP
 ERROR 2026-03-13 14:30:29,093 views 106320 139857616697024 Failed to send email to praveen2005.21@gmail.com: emails/welcome.html
 INFO 2026-03-13 14:30:29,099 views 106320 139857616697024 Notification created for user 2: WELCOME
+INFO 2026-03-13 14:53:40,153 views 110894 139651362834112 Email sent to praveenff2005.23@gmail.com: Uzhavar Neradi - Email Verification OTP
+INFO 2026-03-13 14:53:40,161 views 110894 139651362834112 Notification created for user 3: OTP
+INFO 2026-03-13 14:54:15,788 views 110894 139651362834112 Email sent to praveenff2005.23@gmail.com: Welcome to Uzhavar Neradi!
+INFO 2026-03-13 14:54:15,862 views 110894 139651362834112 Notification created for user 3: WELCOME
+WARNING 2026-03-13 14:54:58,796 views 110894 139651362834112 farmer profile not found for user 3 - praveenff2005.23@gmail.com
+WARNING 2026-03-13 14:54:58,799 views 110894 139651371226816 farmer profile not found for user 3 - praveenff2005.23@gmail.com

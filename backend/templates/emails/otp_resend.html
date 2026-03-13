@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<body style="font-family:Arial;background:#f5f5f5;padding:20px">
+
+<div style="max-width:600px;margin:auto;background:white;padding:30px;border-radius:8px">
+
+<h2 style="color:#2e7d32;">Uzhavar Neradi</h2>
+
+<h3>New OTP Requested</h3>
+
+<p>Hello {{ user.username }},</p>
+
+<p>You requested a new OTP for verification.</p>
+
+<div style="text-align:center;margin:30px;">
+<span style="font-size:32px;font-weight:bold;color:#2e7d32">
+{{ otp }}
+</span>
+</div>
+
+<p>This OTP is valid for <b>10 minutes</b>.</p>
+
+<p>Do not share this OTP with anyone.</p>
+
+<p>Regards,<br>
+Uzhavar Neradi Team</p>
+
+</div>
+</body>
+</html>
