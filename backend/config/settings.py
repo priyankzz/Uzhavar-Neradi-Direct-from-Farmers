@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+
     # Third party
     'rest_framework',
     'rest_framework_simplejwt',
@@ -173,8 +174,9 @@ AUTH_USER_MODEL = os.getenv("AUTH_USER_MODEL", "users.User")
 # CORS
 # ===============================
 
-CORS_ALLOW_ALL_ORIGINS = os.getenv("CORS_ALLOW_ALL_ORIGINS", "False") == "True"
-CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+]
 
 # ===============================
 # REST FRAMEWORK

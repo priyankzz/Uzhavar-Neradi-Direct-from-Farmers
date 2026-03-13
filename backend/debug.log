@@ -30,3 +30,9 @@ WARNING 2026-03-09 21:16:02,747 views 23188 1448 farmer profile not found for us
 WARNING 2026-03-09 21:16:03,115 views 23188 15220 farmer profile not found for user 11 - p2160961@gmail.com
 WARNING 2026-03-09 22:35:42,735 views 22860 21860 farmer profile not found for user 11 - p2160961@gmail.com
 WARNING 2026-03-09 22:35:42,848 views 22860 18072 farmer profile not found for user 11 - p2160961@gmail.com
+ERROR 2026-03-13 11:33:47,149 views 105553 140256279000768 Failed to send email to praveen2005.21@gmail.com: emails/otp_verification.html
+INFO 2026-03-13 11:33:47,161 views 105553 140256279000768 Notification created for user 1: OTP
+INFO 2026-03-13 14:30:02,326 views 106320 139857616697024 Email sent to praveen2005.21@gmail.com: Uzhavar Neradi - Email Verification OTP
+INFO 2026-03-13 14:30:02,336 views 106320 139857616697024 Notification created for user 2: OTP
+ERROR 2026-03-13 14:30:29,093 views 106320 139857616697024 Failed to send email to praveen2005.21@gmail.com: emails/welcome.html
+INFO 2026-03-13 14:30:29,099 views 106320 139857616697024 Notification created for user 2: WELCOME

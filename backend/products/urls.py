@@ -9,7 +9,7 @@ from . import views
 
 # Create a router and register our viewsets
 router = DefaultRouter()
-router.register(r'', views.ProductViewSet, basename='product')
+router.register(r'products', views.ProductViewSet, basename='product')
 
 urlpatterns = [
     # ViewSet routes (includes list, create, retrieve, update, delete)
