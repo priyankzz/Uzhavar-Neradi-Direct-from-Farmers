@@ -35,34 +35,46 @@ from products.models import Product, Category
 User = get_user_model()
 
 class AdminDashboardView(APIView):
-    """Admin Dashboard Overview"""
+    """Admin Dashboard Overview - Fixed permanent user counts"""
     permission_classes = [IsAdmin]
-    
+
     def get(self, request):
         today = timezone.now().date()
         thirty_days_ago = today - timedelta(days=30)
-        
-        # Basic stats
+
+        # -----------------------------
+        # Basic stats - permanent fix
+        # -----------------------------
         total_users = User.objects.count()
+        total_farmers = User.objects.filter(role='FARMER').count()
+        total_customers = User.objects.filter(role='CUSTOMER').count()
+        total_delivery = User.objects.filter(role='DELIVERY').count()
+
         pending_verifications = FarmerProfile.objects.filter(verification_status='PENDING').count()
         active_disputes = Dispute.objects.filter(status__in=['OPEN', 'IN_PROGRESS']).count()
         pending_flags = MiddlemanFlag.objects.filter(status='PENDING').count()
-        
+
+        # -----------------------------
         # Today's orders
+        # -----------------------------
         today_orders = Order.objects.filter(created_at__date=today).count()
         today_revenue = Order.objects.filter(
             created_at__date=today,
             status='DELIVERED'
         ).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
-        
+
+        # -----------------------------
         # Monthly revenue
+        # -----------------------------
         month_start = today.replace(day=1)
-        monthly_revenue = Order.objects.filter(
+        total_revenue_month = Order.objects.filter(
             created_at__date__gte=month_start,
             status='DELIVERED'
         ).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
-        
+
+        # -----------------------------
         # User growth (last 30 days)
+        # -----------------------------
         user_growth = []
         for i in range(30):
             date = thirty_days_ago + timedelta(days=i)
@@ -71,10 +83,12 @@ class AdminDashboardView(APIView):
                 'date': date,
                 'count': count
             })
-        
+
+        # -----------------------------
         # Recent activities
+        # -----------------------------
         recent_activities = []
-        
+
         # Recent registrations
         recent_users = User.objects.order_by('-date_joined')[:5]
         for user in recent_users:
@@ -84,7 +98,7 @@ class AdminDashboardView(APIView):
                 'timestamp': user.date_joined,
                 'user': user.username
             })
-        
+
         # Recent orders
         recent_orders = Order.objects.order_by('-created_at')[:5]
         for order in recent_orders:
@@ -94,23 +108,29 @@ class AdminDashboardView(APIView):
                 'timestamp': order.created_at,
                 'order_id': order.id
             })
-        
-        # Sort by timestamp
+
+        # Sort recent activities
         recent_activities.sort(key=lambda x: x['timestamp'], reverse=True)
         recent_activities = recent_activities[:10]
-        
+
+        # -----------------------------
+        # Dashboard data
+        # -----------------------------
         dashboard_data = {
-            'total_users': total_users,
-            'pending_verifications': pending_verifications,
-            'active_disputes': active_disputes,
-            'pending_flags': pending_flags,
-            'today_orders': today_orders,
-            'today_revenue': today_revenue,
-            'total_revenue_month': monthly_revenue,
-            'user_growth': user_growth,
-            'recent_activities': recent_activities
+            'totalUsers': total_users,              # camelCase for frontend
+            'totalFarmers': total_farmers,
+            'totalCustomers': total_customers,
+            'totalDelivery': total_delivery,
+            'pendingVerifications': pending_verifications,
+            'activeDisputes': active_disputes,
+            'pendingFlags': pending_flags,
+            'todayOrders': today_orders,
+            'todayRevenue': today_revenue,
+            'totalRevenueMonth': total_revenue_month,
+            'userGrowth': user_growth,
+            'recentActivities': recent_activities
         }
-        
+
         serializer = AdminDashboardSerializer(dashboard_data)
         return Response(serializer.data)
 

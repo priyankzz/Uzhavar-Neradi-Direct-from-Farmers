@@ -117,16 +117,19 @@ class AnnouncementSerializer(serializers.ModelSerializer):
         read_only_fields = ['created_at', 'updated_at']
 
 class AdminDashboardSerializer(serializers.Serializer):
-    """Admin Dashboard Summary"""
-    total_users = serializers.IntegerField()
-    pending_verifications = serializers.IntegerField()
-    active_disputes = serializers.IntegerField()
-    pending_flags = serializers.IntegerField()
-    today_orders = serializers.IntegerField()
-    today_revenue = serializers.DecimalField(max_digits=12, decimal_places=2)
-    total_revenue_month = serializers.DecimalField(max_digits=12, decimal_places=2)
-    user_growth = serializers.ListField(child=serializers.DictField())
-    recent_activities = serializers.ListField(child=serializers.DictField())
+    """Admin Dashboard Summary - camelCase for frontend"""
+    totalUsers = serializers.IntegerField()
+    totalFarmers = serializers.IntegerField()
+    totalCustomers = serializers.IntegerField()
+    totalDelivery = serializers.IntegerField()
+    pendingVerifications = serializers.IntegerField()
+    activeDisputes = serializers.IntegerField()
+    pendingFlags = serializers.IntegerField()
+    todayOrders = serializers.IntegerField()
+    todayRevenue = serializers.DecimalField(max_digits=12, decimal_places=2)
+    totalRevenueMonth = serializers.DecimalField(max_digits=12, decimal_places=2)
+    userGrowth = serializers.ListField(child=serializers.DictField())
+    recentActivities = serializers.ListField(child=serializers.DictField())
 
 class CategoryAdminSerializer(serializers.ModelSerializer):
     """Category serializer for admin"""
