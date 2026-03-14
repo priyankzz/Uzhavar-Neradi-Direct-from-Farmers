@@ -10,7 +10,7 @@ from rest_framework.decorators import action
 from django.db.models import Q
 from .models import Category, Product, ProductReview
 from .serializers import CategorySerializer, ProductSerializer, ProductReviewSerializer
-from users.permissions import IsFarmer, IsCustomer
+from users.permissions import IsFarmer, IsCustomer, IsVerifiedUser
 
 class CategoryListView(generics.ListAPIView):
     """List all categories"""
@@ -41,7 +41,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         - Create/Update/Delete: Farmer only
         """
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            return [IsFarmer()]
+            return [permissions.IsAuthenticated(), IsFarmer(), IsVerifiedUser()]
         return [permissions.AllowAny()]
     
     def get_queryset(self):
@@ -123,7 +123,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         instance.delete()
         print("✅ Product deleted successfully")
     
-    @action(detail=False, methods=['get'], permission_classes=[permissions.AllowAny])
+    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated, IsFarmer, IsVerifiedUser])
     def my_products(self, request):
         """Get products for the current farmer (alias for ?farmer=me)"""
         if not request.user.is_authenticated:
@@ -144,7 +144,7 @@ class ProductDetailView(generics.RetrieveAPIView):
 class ProductCreateView(generics.CreateAPIView):
     """Legacy support: Create new product (Farmer only)"""
     serializer_class = ProductSerializer
-    permission_classes = [IsFarmer]
+    permission_classes = [permissions.IsAuthenticated, IsFarmer, IsVerifiedUser]
     
     def perform_create(self, serializer):
         print("🔥 Creating new product with is_active=True")
@@ -155,7 +155,7 @@ class ProductCreateView(generics.CreateAPIView):
 class ProductUpdateView(generics.UpdateAPIView):
     """Legacy support: Update product (Farmer only)"""
     serializer_class = ProductSerializer
-    permission_classes = [IsFarmer]
+    permission_classes = [permissions.IsAuthenticated, IsFarmer, IsVerifiedUser]
     
     def get_queryset(self):
         return Product.objects.filter(farmer=self.request.user)
@@ -167,7 +167,7 @@ class ProductUpdateView(generics.UpdateAPIView):
 
 class ProductDeleteView(generics.DestroyAPIView):
     """Legacy support: Delete product (Farmer only)"""
-    permission_classes = [IsFarmer]
+    permission_classes = [permissions.IsAuthenticated, IsFarmer, IsVerifiedUser]
     
     def get_queryset(self):
         return Product.objects.filter(farmer=self.request.user)
@@ -193,7 +193,7 @@ class ProductReviewListView(generics.ListCreateAPIView):
     
     def get_permissions(self):
         if self.request.method == 'POST':
-            return [IsCustomer()]
+            return [permissions.IsAuthenticated(), IsCustomer(), IsVerifiedUser()]
         return [permissions.AllowAny()]
     
     def get_queryset(self):

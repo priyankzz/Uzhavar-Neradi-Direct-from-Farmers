@@ -45,10 +45,10 @@ class AdminDashboardView(APIView):
         # -----------------------------
         # Basic stats - permanent fix
         # -----------------------------
-        total_users = User.objects.count()
-        total_farmers = User.objects.filter(role='FARMER').count()
-        total_customers = User.objects.filter(role='CUSTOMER').count()
-        total_delivery = User.objects.filter(role='DELIVERY').count()
+        total_users = User.objects.filter(is_verified=True).count()
+        total_farmers = User.objects.filter(role='FARMER', is_verified=True).count()
+        total_customers = User.objects.filter(role='CUSTOMER', is_verified=True).count()
+        total_delivery = User.objects.filter(role='DELIVERY', is_verified=True).count()
 
         pending_verifications = FarmerProfile.objects.filter(verification_status='PENDING').count()
         active_disputes = Dispute.objects.filter(status__in=['OPEN', 'IN_PROGRESS']).count()
@@ -144,7 +144,7 @@ class UserManagementView(APIView):
         verified = request.query_params.get('verified')
         search = request.query_params.get('search')
         
-        users = User.objects.all()
+        users = User.objects.filter(is_verified=True)
         
         if role:
             users = users.filter(role=role)
@@ -355,9 +355,7 @@ class VerificationRequestsView(APIView):
     permission_classes = [IsAdmin]
     
     def get(self, request):
-        pending_farmers = FarmerProfile.objects.filter(
-            verification_status='PENDING'
-        ).select_related('user')
+        pending_users = User.objects.filter(is_verified=False)
         
         data = []
         for farmer in pending_farmers:

@@ -11,7 +11,6 @@ from django.utils import timezone
 from datetime import timedelta, datetime
 from collections import defaultdict
 import random
-import numpy as np
 
 from .models import DemandInsight, HistoricalSalesData, FestivalCalendar, RegionalDemandPattern
 from .serializers import (
@@ -26,7 +25,7 @@ from users.permissions import IsFarmer, IsAdmin
 
 class DemandInsightsView(APIView):
     """Get demand insights for farmer (Rule-based)"""
-    permission_classes = [IsFarmer]
+    permission_classes = [permissions.IsAuthenticated, IsFarmer]
     
     def get(self, request):
         farmer = request.user
@@ -87,6 +86,7 @@ class DemandInsightsView(APIView):
                 predicted *= festival_multiplier
                 
                 # Seasonal factor
+                seasonal_factor = 1.0
                 current_month = today.month
                 seasonal = RegionalDemandPattern.objects.filter(
                     region=farmer.farmer_profile.farm_address.split(',')[-1].strip() if farmer.farmer_profile else '',
@@ -126,7 +126,7 @@ class DemandInsightsView(APIView):
 
 class DemandPredictionsView(APIView):
     """Get ML-based demand predictions (Phase 2)"""
-    permission_classes = [IsFarmer]
+    permission_classes = [permissions.IsAuthenticated, IsFarmer]
     
     def get(self, request):
         farmer = request.user
@@ -171,7 +171,7 @@ class DemandPredictionsView(APIView):
 
 class SalesReportView(APIView):
     """Get sales report for farmer"""
-    permission_classes = [IsFarmer]
+    permission_classes = [permissions.IsAuthenticated, IsFarmer]
     
     def get(self, request):
         farmer = request.user
@@ -255,7 +255,7 @@ class SalesReportView(APIView):
 
 class SeasonalTrendsView(APIView):
     """Get seasonal trends for farmer's region"""
-    permission_classes = [IsFarmer]
+    permission_classes = [permissions.IsAuthenticated, IsFarmer]
     
     def get(self, request):
         farmer = request.user
@@ -277,7 +277,7 @@ class SeasonalTrendsView(APIView):
 
 class PlatformStatsView(APIView):
     """Get platform statistics (Admin only)"""
-    permission_classes = [IsAdmin]
+    permission_classes = [permissions.IsAuthenticated, IsAdmin]
     
     def get(self, request):
         today = timezone.now().date()
@@ -338,7 +338,7 @@ class PlatformStatsView(APIView):
 
 class UserGrowthView(APIView):
     """Get user growth analytics (Admin only)"""
-    permission_classes = [IsAdmin]
+    permission_classes = [permissions.IsAuthenticated, IsAdmin]
     
     def get(self, request):
         period = request.query_params.get('period', 'month')
@@ -378,7 +378,7 @@ class UserGrowthView(APIView):
 
 class TopProductsView(APIView):
     """Get top selling products (Admin only)"""
-    permission_classes = [IsAdmin]
+    permission_classes = [permissions.IsAuthenticated, IsAdmin]
     
     def get(self, request):
         limit = int(request.query_params.get('limit', 10))
@@ -427,7 +427,7 @@ class TopProductsView(APIView):
 
 class RegionAnalysisView(APIView):
     """Get region-wise analysis (Admin only)"""
-    permission_classes = [IsAdmin]
+    permission_classes = [permissions.IsAuthenticated, IsAdmin]
     
     def get(self, request):
         # Group orders by region (simplified - extract from delivery_address)

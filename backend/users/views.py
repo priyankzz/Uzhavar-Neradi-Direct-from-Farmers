@@ -16,8 +16,10 @@ from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.utils import timezone
 from django.urls import reverse
+from users.permissions import IsFarmer, IsCustomer, IsDeliveryPartner
 import logging
 import json
+from users.permissions import IsVerifiedUser
 
 from .models import (
     User, FarmerProfile, CustomerProfile, DeliveryPartnerProfile, 
@@ -146,36 +148,51 @@ class RegisterView(generics.CreateAPIView):
             else:
                 print(f"⚠️ OTP is: {user.email_otp} (use this for verification)")
 
+# users/views.py
+
 class LoginView(APIView):
-    """User Login - Fixed for superusers"""
+    """User Login with verification check"""
     permission_classes = [permissions.AllowAny]
-    
+
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.validated_data['user']
-            
-            # Generate JWT token
-            refresh = RefreshToken.for_user(user)
-            
-            # Serialize user data
-            user_data = UserSerializer(user).data
-            
-            # Log login activity
-            UserActivity.objects.create(
-                user=user,
-                activity_type='LOGIN',
-                ip_address=request.META.get('REMOTE_ADDR'),
-                user_agent=request.META.get('HTTP_USER_AGENT', '')
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        user = serializer.validated_data['user']
+        refresh = RefreshToken.for_user(user)
+        user_data = UserSerializer(user).data
+
+        # Check verification for non-admin users
+        if user.role != 'ADMIN':
+            is_verified = True  # default allow
+            if user.role == 'DELIVERY':
+                profile = getattr(user, 'delivery_profile', None)
+                is_verified = profile.is_verified if profile else False
+            elif user.role == 'FARMER':
+                profile = getattr(user, 'farmer_profile', None)
+                is_verified = profile.is_verified if profile else False
+
+            user_data['is_verified'] = is_verified
+            user_data['verification_message'] = (
+                "You are not verified by admin. You cannot do anything until admin verifies your account."
+                if not is_verified else "Verified"
             )
-            
-            return Response({
-                'user': user_data,
-                'access': str(refresh.access_token),
-                'refresh': str(refresh),
-                'message': 'Login successful'
-            })
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # Track login activity
+        UserActivity.objects.create(
+            user=user,
+            activity_type='LOGIN',
+            ip_address=request.META.get('REMOTE_ADDR'),
+            user_agent=request.META.get('HTTP_USER_AGENT', '')
+        )
+
+        return Response({
+            'user': user_data,
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+            'message': 'Login successful'
+        })
 
 class OTPVerifyView(APIView):
     """Verify OTP"""
@@ -287,7 +304,7 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
 class CreateFarmerProfileView(generics.CreateAPIView):
     """Create Farmer Profile"""
     serializer_class = FarmerProfileSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsFarmer]
     
     def perform_create(self, serializer):
         profile = serializer.save(user=self.request.user)
@@ -352,7 +369,7 @@ class CreateFarmerProfileView(generics.CreateAPIView):
 class GetFarmerProfileView(generics.RetrieveAPIView):
     """Get Farmer Profile"""
     serializer_class = FarmerProfileSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsFarmer]
     
     def get_object(self):
         try:
@@ -370,7 +387,7 @@ class GetFarmerProfileView(generics.RetrieveAPIView):
 class CreateCustomerProfileView(generics.CreateAPIView):
     """Create Customer Profile"""
     serializer_class = CustomerProfileSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsCustomer]
     
     def perform_create(self, serializer):
         profile = serializer.save(user=self.request.user)
@@ -387,25 +404,18 @@ class CreateCustomerProfileView(generics.CreateAPIView):
 class GetCustomerProfileView(generics.RetrieveAPIView):
     """Get Customer Profile"""
     serializer_class = CustomerProfileSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsCustomer]
     
     def get_object(self):
         try:
             return CustomerProfile.objects.get(user=self.request.user)
         except CustomerProfile.DoesNotExist:
-            return Response(
-                {
-                    'error': 'Customer profile not found',
-                    'message': 'You need to create a customer profile first',
-                    'needs_creation': True
-                }, 
-                status=status.HTTP_404_NOT_FOUND
-            )
+            raise NotFound("Customer profile not found. Please create one first.")
 
 class CreateDeliveryProfileView(generics.CreateAPIView):
     """Create Delivery Partner Profile"""
     serializer_class = DeliveryPartnerProfileSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsDeliveryPartner]
     
     def perform_create(self, serializer):
         profile = serializer.save(user=self.request.user)
@@ -441,20 +451,13 @@ class CreateDeliveryProfileView(generics.CreateAPIView):
 class GetDeliveryProfileView(generics.RetrieveAPIView):
     """Get Delivery Partner Profile"""
     serializer_class = DeliveryPartnerProfileSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsDeliveryPartner]
     
     def get_object(self):
         try:
             return DeliveryPartnerProfile.objects.get(user=self.request.user)
         except DeliveryPartnerProfile.DoesNotExist:
-            return Response(
-                {
-                    'error': 'Delivery profile not found',
-                    'message': 'You need to create a delivery profile first',
-                    'needs_creation': True
-                }, 
-                status=status.HTTP_404_NOT_FOUND
-            )
+            raise NotFound("Delivery profile not found. Please create one first.")
 
 # ============================================================================
 # ENHANCED FARMER PROFILE VIEWS
@@ -494,11 +497,13 @@ class EnhancedGetFarmerProfileView(
     - PUT: Update farmer profile fully
     """
     serializer_class = FarmerProfileSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsVerifiedUser]
     
     def get_object(self):
-        """Get farmer profile with enhanced error handling"""
-        return self.get_profile_or_404(FarmerProfile, self.request.user)
+        try:
+            return FarmerProfile.objects.get(user=self.request.user)
+        except FarmerProfile.DoesNotExist:
+            raise NotFound("Farmer profile not found. Please create one first.")
     
     def get(self, request, *args, **kwargs):
         """Retrieve farmer profile with additional context"""
@@ -741,7 +746,7 @@ class FarmerProfileStatusView(generics.RetrieveAPIView):
     Get farmer profile verification status
     Useful for checking if profile exists and its verification state
     """
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsVerifiedUser]
     
     def get(self, request, *args, **kwargs):
         """Return profile status without full data"""
@@ -807,7 +812,7 @@ class PublicFarmerDeliveryInfoView(APIView):
 class NotificationListView(generics.ListAPIView):
     """Get user notifications"""
     serializer_class = NotificationSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsVerifiedUser]
     
     def get_queryset(self):
         return Notification.objects.filter(
@@ -829,7 +834,7 @@ class NotificationListView(generics.ListAPIView):
 
 class NotificationCountView(APIView):
     """Get unread notification count"""
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsVerifiedUser]
     
     def get(self, request):
         count = Notification.objects.filter(
@@ -840,7 +845,7 @@ class NotificationCountView(APIView):
 
 class MarkNotificationReadView(APIView):
     """Mark notification as read"""
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsVerifiedUser]
     
     def post(self, request, notification_id):
         try:
@@ -859,7 +864,7 @@ class MarkNotificationReadView(APIView):
 
 class MarkAllNotificationsReadView(APIView):
     """Mark all notifications as read"""
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsVerifiedUser]
     
     def post(self, request):
         Notification.objects.filter(

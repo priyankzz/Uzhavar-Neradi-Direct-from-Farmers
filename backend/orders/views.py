@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 from django.utils import timezone
 from .models import Order, DeliveryAssignment, DeliveryTracking
 from .serializers import OrderSerializer, CreateOrderSerializer, DeliveryAssignmentSerializer, DeliveryTrackingSerializer
-from users.permissions import IsCustomer, IsFarmer, IsDeliveryPartner
+from users.permissions import IsCustomer, IsFarmer, IsDeliveryPartner, IsVerifiedUser
 from rest_framework.permissions import IsAuthenticated
 
 class OrderListView(generics.ListAPIView):
@@ -45,12 +45,6 @@ class OrderDetailView(generics.RetrieveAPIView):
         return Order.objects.none()
 
 class CreateOrderView(generics.CreateAPIView):
-    """Create new order"""
-    serializer_class = CreateOrderSerializer
-    permission_classes = [IsAuthenticated] 
-    
-    def perform_create(self, serializer):
-        serializer.save()
     
     def get_serializer_context(self):
         """Add request to serializer context"""
@@ -60,14 +54,13 @@ class CreateOrderView(generics.CreateAPIView):
     
     """Create new order"""
     serializer_class = CreateOrderSerializer
-    permission_classes = [IsAuthenticated] 
-    
+    permission_classes = [IsAuthenticated, IsCustomer, IsVerifiedUser]
     def perform_create(self, serializer):
         serializer.save()
 
 class UpdateOrderStatusView(APIView):
     """Update order status (Farmer only)"""
-    permission_classes = [IsFarmer]
+    permission_classes = [IsAuthenticated, IsFarmer, IsVerifiedUser]
     
     def post(self, request, order_id):
         try:
@@ -101,7 +94,7 @@ class UpdateOrderStatusView(APIView):
 
 class AssignDeliveryView(APIView):
     """Assign delivery partner to order (Farmer only)"""
-    permission_classes = [IsFarmer]
+    
     
     def post(self, request, order_id):
         try:
@@ -128,34 +121,12 @@ class AssignDeliveryView(APIView):
             return Response({'error': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
         
     """Assign delivery partner to order (Farmer only)"""
-    permission_classes = [IsFarmer]
+    permission_classes = [IsAuthenticated, IsFarmer, IsVerifiedUser]
     
-    def post(self, request, order_id):
-        try:
-            order = Order.objects.get(id=order_id, farmer=request.user)
-            delivery_partner_id = request.data.get('delivery_partner_id')
-            
-            # Create delivery assignment
-            assignment = DeliveryAssignment.objects.create(
-                order=order,
-                delivery_partner_id=delivery_partner_id,
-                assigned_by=request.user,
-                estimated_delivery_time=request.data.get('estimated_delivery_time')
-            )
-            
-            order.delivery_partner_id = delivery_partner_id
-            order.status = 'ASSIGNED'
-            order.assigned_at = timezone.now()
-            order.save()
-            
-            return Response(DeliveryAssignmentSerializer(assignment).data)
-        except Order.DoesNotExist:
-            return Response({'error': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
-
 class DeliveryAssignmentsView(generics.ListAPIView):
     """Get delivery assignments (Delivery Partner)"""
     serializer_class = DeliveryAssignmentSerializer
-    permission_classes = [IsDeliveryPartner]
+    permission_classes = [IsAuthenticated, IsDeliveryPartner, IsVerifiedUser]
     
     def get_queryset(self):
         return DeliveryAssignment.objects.filter(
@@ -215,7 +186,7 @@ class UpdateDeliveryStatusView(APIView):
 
 class TrackOrderView(APIView):
     """Track order (Customer)"""
-    permission_classes = [IsCustomer]
+    permission_classes = [IsAuthenticated, IsCustomer, IsVerifiedUser]
     
     def get(self, request, order_id):
         try:

@@ -36,3 +36,42 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
         return obj.user == request.user
+
+class IsVerifiedUser(permissions.BasePermission):
+    """
+    Allow access only if the user is verified by admin.
+    Admin and Customers are always allowed.
+    """
+
+    message = "Your account is not verified by admin yet."
+
+    def has_permission(self, request, view):
+        user = request.user
+
+        if not user.is_authenticated:
+            return False
+
+        # Admin always allowed
+        if user.role == 'ADMIN':
+            return True
+
+        # Customer allowed
+        if user.role == 'CUSTOMER':
+            return True
+
+        # Farmer verification check
+        if user.role == 'FARMER':
+            profile = getattr(user, 'farmer_profile', None)
+            return profile and profile.is_verified
+
+        # Delivery verification check
+        if user.role == 'DELIVERY':
+            profile = getattr(user, 'delivery_profile', None)
+            return profile and profile.is_verified
+
+        return False
+
+class IsVerifiedUser(permissions.BasePermission):
+
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.is_verified
