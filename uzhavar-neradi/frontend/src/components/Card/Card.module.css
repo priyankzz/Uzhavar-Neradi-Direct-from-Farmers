@@ -1,0 +1,10 @@
+.card {
+  composes: card from '../../index.css';
+}
+.cardHeader {
+  composes: card-header from '../../index.css';
+}
+.cardFooter {
+  composes: card-footer from '../../index.css';
+}
+/* optional: add component‑specific overrides */

@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head><title>New Order Received</title></head>
+<body>
+    <p>Dear {{ farmer_name }},</p>
+    <p>You have received a new order (ID: {{ order_id }}).</p>
+    <p>Customer: {{ customer_name }}<br>
+       Total Amount: ₹{{ total_amount }}<br>
+       Delivery Method: {{ delivery_method }}<br>
+       Address: {{ delivery_address }}</p>
+    <p><a href="{{ site_url }}/farmer/orders">View order in your dashboard</a></p>
+    <p>Thank you for using Uzhavar Neradi!</p>
+</body>
+</html>

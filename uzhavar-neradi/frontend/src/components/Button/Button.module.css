@@ -1,0 +1,18 @@
+/* /* Use global classes via `composes` – or simply rely on the global class names. 
+   If you want to keep component styles separate, you can define local overrides. 
+
+.btn {
+  composes: btn from '../../index.css'; /* inherits base button style 
+}
+.btnPrimary {
+  composes: btn-primary from '../../index.css';
+}
+.btnSecondary {
+  composes: btn-secondary from '../../index.css';
+}
+.btnAccent {
+  composes: btn-accent from '../../index.css';
+}
+.btnDanger {
+  composes: btn-danger from '../../index.css';
+} */

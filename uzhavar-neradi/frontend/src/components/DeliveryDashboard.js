@@ -1,0 +1,46 @@
+import React from 'react';
+import { NavLink, Routes, Route } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { useAuth } from '../contexts/AuthContext';
+import DeliveryOrders from './delivery/DeliveryOrders';
+import DeliveryProfile from './delivery/DeliveryProfile';
+import CustomerBrowseProducts from './customer/CustomerBrowseProducts';
+import CustomerOrders from './customer/CustomerOrders';
+import DeliveryHome from './delivery/DeliveryHome';
+
+const DeliveryDashboard = () => {
+  const { user } = useAuth();
+  const { t } = useTranslation();
+
+  return (
+    <div className={`dashboard-role ${user?.role || 'delivery'}`}>
+      <h1>{t('delivery_dashboard')}</h1>
+      <nav className="flex gap-md wrap" style={{ flexWrap: 'wrap' }}>
+        <NavLink to="/delivery" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} end>
+          {t('home')}
+        </NavLink>
+        <NavLink to="/delivery/orders" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+          {t('assigned_orders')}
+        </NavLink>
+        <NavLink to="/delivery/browse" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+          {t('browse_products')}
+        </NavLink>
+        <NavLink to="/delivery/purchases" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+          {t('my_purchases')}
+        </NavLink>
+        <NavLink to="/delivery/profile" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+          {t('profile')}
+        </NavLink>
+      </nav>
+      <Routes>
+        <Route index element={<DeliveryHome />} />
+        <Route path="orders" element={<DeliveryOrders />} />
+        <Route path="browse" element={<CustomerBrowseProducts />} />
+        <Route path="purchases" element={<CustomerOrders />} />
+        <Route path="profile" element={<DeliveryProfile />} />
+      </Routes>
+    </div>
+  );
+};
+
+export default DeliveryDashboard;

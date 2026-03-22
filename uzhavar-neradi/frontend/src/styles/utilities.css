@@ -1,0 +1,340 @@
+/* ----- Buttons ----- */
+.btn {
+  display: inline-block;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-base);
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  text-decoration: none;
+}
+.btn-primary {
+  background: var(--color-primary);
+  color: white;
+}
+.btn-primary:hover {
+  background: #1B5E20;
+}
+.btn-secondary {
+  background: var(--color-secondary);
+  color: white;
+}
+.btn-secondary:hover {
+  background: #6D4C41;
+}
+.btn-accent {
+  background: var(--color-accent);
+  color: #333;
+}
+.btn-danger {
+  background: var(--color-error);
+  color: white;
+}
+.btn-danger:hover {
+  background: #c62828;
+}
+.btn-success {
+  background: var(--color-success);
+  color: white;
+}
+.btn-success:hover {
+  background: #2E7D32;
+}
+.btn-disabled,
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ----- Cards ----- */
+.card {
+  background: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+.card-header {
+  font-weight: bold;
+  margin-bottom: var(--spacing-sm);
+  border-bottom: 1px solid #eee;
+  padding-bottom: var(--spacing-xs);
+}
+.card-footer {
+  margin-top: var(--spacing-md);
+  text-align: right;
+}
+
+/* ----- Layout Utilities ----- */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-md);
+}
+.flex {
+  display: flex;
+}
+.flex-col {
+  flex-direction: column;
+}
+.items-center {
+  align-items: center;
+}
+.justify-between {
+  justify-content: space-between;
+}
+.gap-sm {
+  gap: var(--spacing-sm);
+}
+.gap-md {
+  gap: var(--spacing-md);
+}
+.text-center {
+  text-align: center;
+}
+.text-right {
+  text-align: right;
+}
+.mt-md {
+  margin-top: var(--spacing-md);
+}
+.mb-md {
+  margin-bottom: var(--spacing-md);
+}
+.p-md {
+  padding: var(--spacing-md);
+}
+.w-full {
+  width: 100%;
+}
+
+/* ----- Role Accent (for dashboards) ----- */
+.dashboard-role {
+  border-top: 4px solid;
+}
+.dashboard-role.admin {
+  border-top-color: var(--color-admin);
+}
+.dashboard-role.farmer {
+  border-top-color: var(--color-farmer);
+}
+.dashboard-role.customer {
+  border-top-color: var(--color-customer);
+}
+.dashboard-role.delivery {
+  border-top-color: var(--color-delivery);
+}
+
+/* Navigation links */
+.nav-link {
+  color: var(--color-text);
+  text-decoration: none;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius);
+  transition: background 0.2s;
+}
+.nav-link:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+.nav-link.active {
+  background: var(--color-primary);
+  color: white;
+}
+
+/* Input styles */
+.input {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid #ccc;
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-base);
+  width: 100%;
+}
+
+/* List utilities */
+.list-none {
+  list-style: none;
+}
+.p-0 {
+  padding: 0;
+}
+
+/* ----- Table Styles (Responsive) ----- */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  font-size: var(--font-size-sm);
+}
+
+.table thead tr {
+  background-color: var(--color-primary);
+  color: white;
+  text-align: left;
+}
+
+.table th,
+.table td {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-bottom: 1px solid #e0e0e0;
+  word-break: break-word;
+}
+
+.table tbody tr:hover {
+  background-color: #f9f9f9;
+  transition: background 0.2s;
+}
+
+/* Action buttons inside table */
+.table .btn {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: var(--font-size-sm);
+}
+
+/* Dropdown select inside table */
+.table select {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  margin-left: 0;
+  width: auto;
+}
+
+/* ----- Metric Cards ----- */
+.metric-card {
+  flex: 1 0 200px;
+  background: white;
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  text-align: center;
+  transition: transform 0.2s;
+}
+.metric-card:hover {
+  transform: translateY(-2px);
+}
+.metric-card h3 {
+  margin: 0 0 var(--spacing-sm) 0;
+  font-size: var(--font-size-lg);
+  color: var(--color-text);
+}
+.metric-card p {
+  font-size: 2rem;
+  margin: 0;
+  color: var(--color-primary);
+}
+.metric-card small {
+  color: #666;
+}
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.btn-sm {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: var(--font-size-sm);
+}
+/* Quantity input in cart */
+.input-quantity {
+  width: 70px;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: 1px solid #ccc;
+  border-radius: var(--border-radius);
+  text-align: center;
+}
+
+.table-warning {
+  background-color: #fff0f0;
+}
+
+.text-error {
+  color: var(--color-error);
+}
+
+.ml-sm {
+  margin-left: var(--spacing-sm);
+}
+.form-label {
+  display: block;
+  margin-bottom: var(--spacing-xs);
+  font-weight: bold;
+}
+
+.text-muted {
+  color: #666;
+}
+
+.ml-sm {
+  margin-left: var(--spacing-sm);
+}
+
+.mt-lg {
+  margin-top: var(--spacing-lg);
+}
+
+.mb-md {
+  margin-bottom: var(--spacing-md);
+}
+.product-image {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: var(--border-radius) var(--border-radius) 0 0;
+}
+
+.product-image-placeholder {
+  width: 100%;
+  height: 150px;
+  background: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+}
+
+.text-sm {
+  font-size: var(--font-size-sm);
+}
+
+.text-muted {
+  color: #666;
+}
+
+.mt-sm {
+  margin-top: var(--spacing-sm);
+}
+.form-group {
+  margin-bottom: var(--spacing-md);
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: var(--spacing-xs);
+  font-weight: 500;
+}
+
+.text-success {
+  color: var(--color-success);
+}
+
+.text-error {
+  color: var(--color-error);
+}
+
+.flex-1 {
+  flex: 1;
+}

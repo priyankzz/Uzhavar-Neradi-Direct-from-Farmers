@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head><title>New Delivery Assignment</title></head>
+<body>
+    <p>Hello {{ partner_name }},</p>
+    <p>You have been assigned to deliver order #{{ order_id }}.</p>
+    <p>Customer: {{ customer_name }}<br>
+       Delivery Address: {{ delivery_address }}<br>
+       Total Amount: ₹{{ total_amount }}</p>
+    <p><a href="{{ site_url }}/delivery/orders">View delivery details</a></p>
+    <p>Thank you!</p>
+</body>
+</html>

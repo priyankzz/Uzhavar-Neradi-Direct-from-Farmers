@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Account Application Status</title>
+</head>
+<body>
+    <p>Hello {{ user.username }},</p>
+    <p>We have reviewed your application to become a 
+        {% if user.role == 'farmer' %}Farmer{% elif user.role == 'delivery' %}Delivery Partner{% endif %} 
+        on Uzhavar Neradi.
+    </p>
+    <p>Unfortunately, your application has been rejected for the following reason:</p>
+    <p><strong>{{ remark }}</strong></p>
+    <p>If you believe this is a mistake, please contact support or reapply with correct information.</p>
+    <p>Thank you,<br>Uzhavar Neradi Team</p>
+</body>
+</html>
