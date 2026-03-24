@@ -3,10 +3,12 @@ FROM node:18-alpine
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-RUN npm ci --only=production
+RUN npm ci
 
 COPY . .
 
 RUN npm run build
 
-CMD ["npx", "serve", "-s", "build", "-l", "3000"]
+RUN npm install -g serve
+
+CMD ["serve", "-s", "build", "-l", "3000"]

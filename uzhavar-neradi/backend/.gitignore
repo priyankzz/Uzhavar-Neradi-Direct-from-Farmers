@@ -1,0 +1,74 @@
+# ======================
+# 🔥 Django Backend
+# ======================
+backend/__pycache__/
+backend/**/*.py[cod]
+backend/*.sqlite3
+backend/db.sqlite3
+backend/*.log
+
+# Media files (user uploads)
+backend/media/
+
+# Static files (if collected)
+backend/staticfiles/
+
+# ======================
+# 🔥 Environment Files
+# ======================
+.env
+.env.*
+backend/.env
+
+# ======================
+# 🔥 Python Env
+# ======================
+env/
+venv/
+.venv/
+ENV/
+
+# ======================
+# 🔥 React Frontend
+# ======================
+frontend/node_modules/
+frontend/build/
+frontend/dist/
+
+# Logs
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# ======================
+# 🔥 Docker
+# ======================
+docker-compose.override.yml
+*.pid
+*.seed
+*.pid.lock
+
+# ======================
+# 🔥 OS Files
+# ======================
+.DS_Store
+Thumbs.db
+
+# ======================
+# 🔥 IDE / Editor
+# ======================
+.vscode/
+.idea/
+
+# ======================
+# 🔥 Testing / Cache
+# ======================
+.coverage
+htmlcov/
+.pytest_cache/
+
+# ======================
+# 🔥 Misc
+# ======================
+*.swp
+*.swo
