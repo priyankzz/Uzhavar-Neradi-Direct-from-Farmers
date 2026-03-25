@@ -71,14 +71,25 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
+#for development i use sqlite3 if it is deplayment then use this db
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': env('POSTGRES_DB', default='uzhavar'),
+#         'USER': env('POSTGRES_USER', default='postgres'),
+#         'PASSWORD': env('POSTGRES_PASSWORD', default='postgres'),
+#         'HOST': env('POSTGRES_HOST', default='db'),
+#         'PORT': env('POSTGRES_PORT', default='5432'),
+#     }
+# }
+
+#databases
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': env('POSTGRES_DB', default='uzhavar'),
-        'USER': env('POSTGRES_USER', default='postgres'),
-        'PASSWORD': env('POSTGRES_PASSWORD', default='postgres'),
-        'HOST': env('POSTGRES_HOST', default='db'),
-        'PORT': env('POSTGRES_PORT', default='5432'),
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 

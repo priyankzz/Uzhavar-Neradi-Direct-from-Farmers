@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import Button from './Button/Button';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -17,14 +18,42 @@ const Login = () => {
   };
 
   return (
-    <div className="login-container">
-      <h2>{t('login')}</h2>
-      {error && <div className="error">{error}</div>}
-      <form onSubmit={handleSubmit}>
-        <input type="email" placeholder={t('email')} value={email} onChange={e => setEmail(e.target.value)} required />
-        <input type="password" placeholder={t('password')} value={password} onChange={e => setPassword(e.target.value)} required />
-        <button type="submit">{t('login')}</button>
-      </form>
+    <div className="container mt-md">
+      <div className="card" style={{ maxWidth: '400px', margin: '0 auto' }}>
+        <h2 className="text-center">{t('login')}</h2>
+        {error && <div className="alert alert-error">{error}</div>}
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <input
+              type="email"
+              placeholder={t('email')}
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+              className="input"
+            />
+          </div>
+          <div className="form-group">
+            <input
+              type="password"
+              placeholder={t('password')}
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+              className="input"
+            />
+          </div>
+          <div className="form-group">
+            <Button type="submit" variant="primary" className="w-full">
+              {t('login')}
+            </Button>
+          </div>
+        </form>
+        <p className="text-center mt-md">
+          {t('no_account')}{' '}
+          <a href="/register" className="link">{t('register')}</a>
+        </p>
+      </div>
     </div>
   );
 };

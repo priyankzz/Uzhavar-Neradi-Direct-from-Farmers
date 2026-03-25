@@ -42,7 +42,7 @@ const Header = () => {
             onError={(e) => { e.target.style.display = 'none'; }} // fallback if image missing
           />
           <span style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--color-primary)' }}>
-            Uzhavar Neradi
+            {t('uzhavar_neradi')}
           </span>
         </Link>
 

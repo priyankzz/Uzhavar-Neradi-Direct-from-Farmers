@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'react-toastify';
 import api from '../services/api';
+import Button from './Button/Button';
 
 const Register = () => {
   const { t } = useTranslation();
@@ -47,119 +49,149 @@ const Register = () => {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       navigate('/verify-otp', { state: { email: formData.email } });
+      toast.success(t('registration_success'));
     } catch (err) {
-      setError(err.response?.data?.detail || 'Registration failed');
+      const msg = err.response?.data?.detail || t('registration_failed');
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="register-container">
-      <h2>{t('register')}</h2>
-      {error && <div className="error">{error}</div>}
-      <form onSubmit={handleSubmit} encType="multipart/form-data">
-        <div>
-          <label>{t('username')}</label>
-          <input
-            type="text"
-            name="username"
-            value={formData.username}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div>
-          <label>{t('email')}</label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div>
-          <label>{t('password')}</label>
-          <input
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div>
-          <label>{t('phone')}</label>
-          <input
-            type="tel"
-            name="phone"
-            value={formData.phone}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div>
-          <label>{t('role')}</label>
-          <select name="role" value={formData.role} onChange={handleChange}>
-            <option value="customer">{t('customer')}</option>
-            <option value="farmer">{t('farmer')}</option>
-            <option value="delivery">{t('delivery_partner')}</option>
-          </select>
-        </div>
-        <div>
-          <label>{t('language')}</label>
-          <select name="language" value={formData.language} onChange={handleChange}>
-            <option value="ta">தமிழ்</option>
-            <option value="en">English</option>
-          </select>
-        </div>
-
-        {formData.role === 'farmer' && (
-          <div>
-            <label>Land Photo (required):</label>
+    <div className="container mt-md">
+      <div className="card" style={{ maxWidth: '500px', margin: '0 auto' }}>
+        <h2 className="text-center">{t('register')}</h2>
+        {error && <div className="alert alert-error">{error}</div>}
+        <form onSubmit={handleSubmit} encType="multipart/form-data">
+          <div className="form-group">
+            <label>{t('username')}</label>
             <input
-              type="file"
-              name="land_photo"
-              accept="image/*"
-              onChange={handleFileChange}
+              type="text"
+              name="username"
+              value={formData.username}
+              onChange={handleChange}
               required
+              className="input"
             />
           </div>
-        )}
+          <div className="form-group">
+            <label>{t('email')}</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              className="input"
+            />
+          </div>
+          <div className="form-group">
+            <label>{t('password')}</label>
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              className="input"
+            />
+          </div>
+          <div className="form-group">
+            <label>{t('phone')}</label>
+            <input
+              type="tel"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              required
+              className="input"
+            />
+          </div>
+          <div className="form-group">
+            <label>{t('role')}</label>
+            <select
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+              className="input"
+            >
+              <option value="customer">{t('customer')}</option>
+              <option value="farmer">{t('farmer')}</option>
+              <option value="delivery">{t('delivery_partner')}</option>
+            </select>
+          </div>
+          <div className="form-group">
+            <label>{t('language')}</label>
+            <select
+              name="language"
+              value={formData.language}
+              onChange={handleChange}
+              className="input"
+            >
+              <option value="ta">தமிழ்</option>
+              <option value="en">English</option>
+            </select>
+          </div>
 
-        {formData.role === 'delivery' && (
-          <>
-            <div>
-              <label>Vehicle Photo (required):</label>
+          {formData.role === 'farmer' && (
+            <div className="form-group">
+              <label>{t('land_photo')} *</label>
               <input
                 type="file"
-                name="vehicle_photo"
+                name="land_photo"
                 accept="image/*"
                 onChange={handleFileChange}
                 required
+                className="input"
               />
             </div>
-            <div>
-              <label>License Photo (required):</label>
-              <input
-                type="file"
-                name="license_photo"
-                accept="image/*"
-                onChange={handleFileChange}
-                required
-              />
-            </div>
-          </>
-        )}
+          )}
 
-        <button type="submit" disabled={loading}>
-          {loading ? t('registering') : t('register')}
-        </button>
-      </form>
-      <p>
-        {t('already_have_account')} <a href="/login">{t('login')}</a>
-      </p>
+          {formData.role === 'delivery' && (
+            <>
+              <div className="form-group">
+                <label>{t('vehicle_photo')} *</label>
+                <input
+                  type="file"
+                  name="vehicle_photo"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  required
+                  className="input"
+                />
+              </div>
+              <div className="form-group">
+                <label>{t('license_photo')} *</label>
+                <input
+                  type="file"
+                  name="license_photo"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  required
+                  className="input"
+                />
+              </div>
+            </>
+          )}
+
+          <div className="form-group">
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={loading}
+              className="w-full"
+            >
+              {loading ? t('registering') : t('register')}
+            </Button>
+          </div>
+        </form>
+        <p className="text-center mt-md">
+          {t('already_have_account')}{' '}
+          <a href="/login" className="link">{t('login')}</a>
+        </p>
+      </div>
     </div>
   );
 };

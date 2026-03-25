@@ -5,7 +5,7 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 const resources = {
     en: {
         translation: {
-            "uzhavar neradi": "Uzhavar Neradi",
+            "uzhavar_neradi": "Uzhavar Neradi",
             "welcome": 'Welcome',
             "login": 'Login',
             "register": 'Register',
@@ -370,6 +370,12 @@ const resources = {
   "address_not_geocoded": "Please select a valid address from the dropdown to enable distance calculation.",
   "flat_delivery_fee": "Flat delivery fee",
   "delivery_fee_fallback_note": "Unable to calculate distance; using default fee.",
+    "registration_success": "Registration successful! Please verify your OTP.",
+  "registration_failed": "Registration failed. Please try again.",
+  "land_photo": "Land Photo",
+  "vehicle_photo": "Vehicle Photo",
+  "license_photo": "License Photo",
+  "no_account": "Don't have an account?",
         }
     },
     ta: {
@@ -732,6 +738,12 @@ const resources = {
   "preorder_max_placeholder": "வரம்பு இல்லை எனில் காலியாக விடவும்",
   "flat_delivery_fee": "நிலையான விநியோக கட்டணம்",
   "delivery_fee_fallback_note": "தூரத்தை கணக்கிட முடியவில்லை; இயல்புநிலை கட்டணம் பயன்படுத்தப்படுகிறது.",
+    "registration_success": "பதிவு வெற்றிகரமாக முடிந்தது! உங்கள் OTP-ஐ சரிபார்க்கவும்.",
+  "registration_failed": "பதிவு தோல்வியடைந்தது. மீண்டும் முயற்சிக்கவும்.",
+  "land_photo": "நில புகைப்படம்",
+  "vehicle_photo": "வாகன புகைப்படம்",
+  "license_photo": "உரிம புகைப்படம்",
+   "no_account": "கணக்கு இல்லையா?",
         }
     }
 };
