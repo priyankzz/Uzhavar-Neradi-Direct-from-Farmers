@@ -45,13 +45,14 @@ const Register = () => {
     }
 
     try {
-      await api.post('/users/register/', data, {
+      const res = await api.post('/users/register/', data, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       navigate('/verify-otp', { state: { email: formData.email } });
       toast.success(t('registration_success'));
     } catch (err) {
-      const msg = err.response?.data?.detail || t('registration_failed');
+      // Extract error message from response
+      const msg = err.response?.data?.error || t('registration_failed');
       setError(msg);
       toast.error(msg);
     } finally {
@@ -65,6 +66,7 @@ const Register = () => {
         <h2 className="text-center">{t('register')}</h2>
         {error && <div className="alert alert-error">{error}</div>}
         <form onSubmit={handleSubmit} encType="multipart/form-data">
+          {/* Form fields same as before */}
           <div className="form-group">
             <label>{t('username')}</label>
             <input

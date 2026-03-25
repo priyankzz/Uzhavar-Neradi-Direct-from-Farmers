@@ -12,7 +12,7 @@ from .serializers import (
     LoginSerializer, UserDetailSerializer, 
     FarmerProfileUpdateSerializer, UserProfileUpdateSerializer
 )
-
+import secrets
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -22,14 +22,35 @@ class RegisterView(generics.CreateAPIView):
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if not serializer.is_valid():
-            print("Validation errors:", serializer.errors)  # ← add this
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        #serializer.is_valid(raise_exception=True)
+            errors = serializer.errors
+            # Build a friendly error message for the user
+            error_messages = []
+            if 'username' in errors:
+                error_messages.append("Username already taken.")
+            if 'email' in errors:
+                error_messages.append("Email already registered.")
+            if 'phone' in errors:
+                error_messages.append("Phone number already in use.")
+            if 'password' in errors:
+                # Password validation errors (e.g., too short)
+                error_messages.append("Password does not meet requirements. Use at least 8 characters, including letters and numbers.")
+            if 'land_photo' in errors:
+                error_messages.append("Land photo is required for farmers.")
+            if 'vehicle_photo' in errors or 'license_photo' in errors:
+                error_messages.append("Vehicle and license photos are required for delivery partners.")
+            if not error_messages:
+                error_messages.append("Registration failed. Please check your details.")
+            # Return the first friendly error message (or combine them)
+            return Response({'error': error_messages[0]}, status=status.HTTP_400_BAD_REQUEST)
+
         user = serializer.save()
-        # Generate and send OTP
-        otp = OTP.objects.create(user=user)
+        # Generate a truly random 6-character OTP
+        otp_code = secrets.token_hex(3).upper()  # e.g., "A1B2C3"
+        otp = OTP.objects.create(user=user, code=otp_code)
         otp.send_via_email()
         return Response({'message': 'OTP sent to email. Please verify.'}, status=status.HTTP_201_CREATED)
+
+
 
 class VerifyOTPView(generics.GenericAPIView):
     serializer_class = OTPVerifySerializer

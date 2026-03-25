@@ -42,7 +42,7 @@ class User(AbstractUser):
 
 class OTP(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='otps')
-    code = models.CharField(max_length=6, default=secrets.token_hex(3).upper())
+    code = models.CharField(max_length=6, default=lambda: secrets.token_hex(3).upper())
     created_at = models.DateTimeField(auto_now_add=True)
     is_used = models.BooleanField(default=False)
 
