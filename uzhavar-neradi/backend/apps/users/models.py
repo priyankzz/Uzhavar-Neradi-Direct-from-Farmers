@@ -40,9 +40,23 @@ class User(AbstractUser):
     def __str__(self):
         return f"{self.username} - {self.role}"
 
+# apps/users/models.py
+import os, smtplib
+from email.mime.text import MIMEText
+from django.db import models
+from django.utils import timezone
+from django.conf import settings
+from dotenv import load_dotenv
+import secrets
+
+def generate_otp():
+    return secrets.token_hex(3).upper()
+
+load_dotenv(os.path.join(settings.BASE_DIR, '.env'))  # safe load .env
+
 class OTP(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='otps')
-    code = models.CharField(max_length=6, default=lambda: secrets.token_hex(3).upper())
+    user = models.ForeignKey('User', on_delete=models.CASCADE, related_name='otps')
+    code = models.CharField(max_length=6, default=generate_otp)
     created_at = models.DateTimeField(auto_now_add=True)
     is_used = models.BooleanField(default=False)
 
@@ -51,6 +65,22 @@ class OTP(models.Model):
                 (timezone.now() - self.created_at).total_seconds() < settings.OTP_EMAIL_TOKEN_VALIDITY)
 
     def send_via_email(self):
+        EMAIL_USER = os.getenv("EMAIL_HOST_USER")
+        EMAIL_PASS = os.getenv("EMAIL_HOST_PASSWORD")
+        if not EMAIL_USER or not EMAIL_PASS:
+            raise ValueError("EMAIL_HOST_USER or EMAIL_HOST_PASSWORD not set in .env")
+
         subject = "Your Uzhavar Neradi OTP Code"
         message = f"Hello {self.user.username},\n\nYour OTP code is: {self.code}\nIt expires in 10 minutes."
-        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [self.user.email])
+
+        msg = MIMEText(message)
+        msg['Subject'] = subject
+        msg['From'] = EMAIL_USER
+        msg['To'] = self.user.email
+
+        with smtplib.SMTP("smtp.gmail.com", 587) as server:
+            server.starttls()
+            server.login(EMAIL_USER, EMAIL_PASS)
+            server.send_message(msg)
+
+        print(f"OTP {self.code} sent to {self.user.email} ✅")

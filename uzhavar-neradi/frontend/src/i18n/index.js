@@ -376,6 +376,7 @@ const resources = {
   "vehicle_photo": "Vehicle Photo",
   "license_photo": "License Photo",
   "no_account": "Don't have an account?",
+  "otp_verification_failed": "OTP verification failed. Please try again."
         }
     },
     ta: {
