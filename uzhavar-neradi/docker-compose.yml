@@ -1,45 +1,83 @@
+version: '3.9'
+
 services:
-  backend:
-    build: ./backend
-    container_name: django_backend
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./backend:/app
-    depends_on:
-      - db
-    environment:
-      - DB_NAME=uzhavar
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
-      - DB_HOST=db
-      - DB_PORT=5432
-    command: >
-      sh -c "
-        while ! nc -z db 5432; do
-          echo 'Waiting for Postgres...';
-          sleep 1;
-        done;
-        python manage.py migrate &&
-        gunicorn --bind 0.0.0.0:8000 core.wsgi:application
-      "
-
-  frontend:
-    build: ./frontend
-    container_name: react_frontend
-    ports:
-      - "3000:3000"
-
+  # PostgreSQL Database
   db:
-    image: postgres:15
-    container_name: postgres_db
-    restart: always
+    image: postgres:15-alpine
+    container_name: uzhavar_db
     environment:
-      POSTGRES_DB: uzhavar
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: uzhavar_db
+      POSTGRES_USER: uzhavar_user
+      POSTGRES_PASSWORD: your_secure_password_here
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U uzhavar_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache & Message Broker
+  redis:
+    image: redis:7-alpine
+    container_name: uzhavar_redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Django Backend
+  backend:
+    build:
+      context: ./uzhavar-neradi/backend
+      dockerfile: Dockerfile
+    container_name: uzhavar_backend
+    command: >
+      sh -c "python manage.py migrate &&
+             gunicorn --bind 0.0.0.0:8000 core.wsgi:application"
+    environment:
+      DEBUG: "False"
+      SECRET_KEY: "your-secret-key-here"
+      DATABASE_URL: "postgresql://uzhavar_user:your_secure_password_here@db:5432/uzhavar_db"
+      REDIS_URL: "redis://redis:6379/0"
+      ALLOWED_HOSTS: "localhost,127.0.0.1,yourdomain.com"
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./uzhavar-neradi/backend:/app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Celery Worker
+  celery:
+    build:
+      context: ./uzhavar-neradi/backend
+      dockerfile: Dockerfile
+    container_name: uzhavar_celery
+    command: celery -A core worker -l info
+    environment:
+      DEBUG: "False"
+      SECRET_KEY: "your-secret-key-here"
+      DATABASE_URL: "postgresql://uzhavar_user:your_secure_password_here@db:5432/uzhavar_db"
+      REDIS_URL: "redis://redis:6379/0"
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ./uzhavar-neradi/backend:/app
 
 volumes:
   postgres_data:
